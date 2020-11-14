@@ -1,38 +1,60 @@
-.App {
-  text-align: center;
+.container {
+    display: flex;
+    flex-direction: row;
 }
 
-.App-logo {
-  height: 40vmin;
-  pointer-events: none;
+.column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .App-logo {
-    animation: App-logo-spin infinite 20s linear;
-  }
+.column:first-child {
+    flex: none;
+    width: 40px;
 }
 
-.App-header {
-  background-color: #282c34;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+.column:first-child > :last-child {
+    height: 6px;
 }
 
-.App-link {
-  color: #61dafb;
+.column .header {
+    background-color: red;
+    height: 24px;
+    text-align: center;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.column .all-day-events {
+    background-color: aqua;
+    height: 48px;
+}
+
+.column .time-of-day {
+    height: 48px;
+}
+
+.column.today {
+    background-color: aliceblue;
+}
+
+.time-of-day .indicator {
+    font-size: 10px;
+    margin-top: -8px;
+}
+
+.events {
+}
+
+.events .time-of-day {
+    border: 1px solid #FAFAFA;
+    box-sizing: border-box;
+}
+
+.now {
+    position: absolute;
+    transform: translateX(-20px) translateY(-20px);
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    background-color: blueviolet;
 }
