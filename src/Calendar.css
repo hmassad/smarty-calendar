@@ -1,0 +1,65 @@
+/*
+https://coolors.co/fafafa-e3f2fd-db5461-686963-8aa29e
+*/
+
+
+.calendar__container {
+    background-color: orangered;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+.calendar__header {
+    display: flex;
+    background-color: #DB5461;
+}
+
+.calendar__header__left-spacer {
+    width: 40px;
+    min-width: 40px;
+    background-color: #DB5461;
+}
+
+ /* give space for the vertical scrollbar */
+ .calendar__header__right-spacer {
+    width: 22px; /* TODO use smarty scrollbar style */
+    min-width: 22px; /* TODO use smarty scrollbar style */
+    background-color: #DB5461;
+}
+
+.calendar__content {
+    flex: 1;
+    display: flex;
+    overflow-x: auto;
+    overflow-y: scroll;
+    background-color: #FAFAFA;
+}
+
+.calendar__header__hours__container {
+    width: 40px;
+    min-width: 40px;
+    height: 1153px;
+    background-color: #DB5461;
+}
+
+.calendar__content__day {
+    height: 1153px;
+}
+
+.calendar__content__day:nth-child(even) {
+    background-color: #ECE5F0;
+}
+
+.calendar__content__day__event__container {
+    height: 1153px;
+    position: relative;
+    padding-right: 10px;
+}
+
+.calendar__content__day__event {
+    position: absolute;
+    background-color: #59114D;
+}
