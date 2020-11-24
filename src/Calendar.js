@@ -40,10 +40,10 @@ const Calendar = ({ className, style }) => {
   }, []);
 
   useEffect(() => {
-    window.addEventListener("resize", handleResize);
+    document.addEventListener("resize", handleResize);
     handleResize();
     return () => {
-      window.removeEventListener("resize", handleResize);
+      document.removeEventListener("resize", handleResize);
     }
   }, [handleResize]);
 
