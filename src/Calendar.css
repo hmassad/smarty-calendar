@@ -74,19 +74,19 @@
 }
 
 .calendar__content__day__today__cap {
+    border-radius: 50%;
+    background: red;
     position: absolute;
-    height: 10px;
-    width: 10px;
-    border-radius: 8px;
-    border: 4px solid black;
+    width: 12px;
+    height: 12px;
+    transform: translateX(-5px) translateY(-5px);
     z-index: 2;
 }
 
 .calendar__content__day__today__line {
     position: absolute;
-    height: 10px;
+    height: 0;
     width: 100%;
-    border-radius: 8px;
-    border: 4px solid black;
+    border-top: 2px solid red;
     z-index: 2;
 }
