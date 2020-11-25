@@ -16,6 +16,8 @@ const timesOfDay = () => {
   return [...Array(24)].map((v, i) => i);
 }
 
+const isToday = (date, timeZone) => moment().tz(timeZone).isSame(moment(date).tz(timeZone), 'days');
+
 const stopEventPropagation = e => {
   if (e.stopPropagation) e.stopPropagation();
   if (e.preventDefault) e.preventDefault();
@@ -26,7 +28,7 @@ const stopEventPropagation = e => {
 
 const minDayWidth = 60;
 
-const Calendar = ({ className, style }) => {
+const Calendar = ({ currentDate, timeZone, events, onCreate, className, style }) => {
 
   const containerRef = useRef();
   const [dayWidth, setDayWidth] = useState(0);
@@ -40,18 +42,17 @@ const Calendar = ({ className, style }) => {
   }, []);
 
   useEffect(() => {
-    document.addEventListener("resize", handleResize);
+    window.addEventListener("resize", handleResize);
     handleResize();
     return () => {
-      document.removeEventListener("resize", handleResize);
+      window.removeEventListener("resize", handleResize);
     }
   }, [handleResize]);
 
-  const [timeZone] = useState('America/Argentina/Buenos_Aires');
-  const [currentDate] = useState(moment().tz(timeZone));
-
   return (
     <div className={`calendar__container ${className || ""}`} style={style} ref={containerRef}>
+
+
       <div className='calendar__header'>
         <div className='calendar__header__left-spacer'>
         </div>
@@ -61,19 +62,51 @@ const Calendar = ({ className, style }) => {
         <div className='calendar__header__right-spacer'>
         </div>
       </div>
+
+
+
       <div className='calendar__content'>
-        <div className='calendar__header__hours__container'>
-          1, 2
-        </div>
-        {weekDates(currentDate, timeZone).map(date => (
-          <div key={date} className='calendar__content__day' style={{width: dayWidth, minWidth: dayWidth, maxWidth: dayWidth}}>
-            <div className='calendar__content__day__event__container'>
-              <div className='calendar__content__day__event' style={{top: 100, height: 50, width: '100%'}}>
-                event
-              </div>
-            </div>
+        <div className='calendar__content__hours__container'>
+        { [...timesOfDay(), 24].map((tod) => (
+          <div key={tod} className='calendar__content__hour'>
+            {`${moment(currentDate).tz(timeZone).startOf('weeks').add(tod, 'hours').format('ha')}`}
           </div>
         ))}
+        </div>
+
+        {weekDates(currentDate, timeZone).map(date => {
+          const startOfDay = moment(date).tz(timeZone).startOf('days');
+
+          return (
+            <div key={date} className='calendar__content__day' style={{width: dayWidth, minWidth: dayWidth, maxWidth: dayWidth}}>
+
+              <div className='calendar__content__day__event__container'>
+                { timesOfDay().map((tod) => (
+                  <div key={tod} className={`calendar__content__day__slot ${isToday(date, timeZone) ? 'today': ''}`}
+                    style={{top: 48 * tod}}/>
+                ))}
+              </div>
+
+              <div className='calendar__content__day__event__container'>
+                { events
+                    .filter(event => !event.allDay && startOfDay.isSame(moment(event.start).tz(timeZone), 'days'))
+                    .map((event, index) => {
+                      const timeOfDay = moment(event.start).tz(timeZone).diff(startOfDay, 'minutes');
+                      const top = 48 / 60 * timeOfDay;
+                      const duration = moment(event.end).diff(moment(event.start), 'minutes');
+                      const height = 48 / 60 * duration;
+
+                      return (
+                        <div key={index} className='calendar__content__day__event' style={{top, height}}>
+                          event
+                        </div>
+                      );
+                    })
+                }
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   )

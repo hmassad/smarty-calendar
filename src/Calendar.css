@@ -38,28 +38,54 @@ https://coolors.co/fafafa-e3f2fd-db5461-686963-8aa29e
     background-color: #FAFAFA;
 }
 
-.calendar__header__hours__container {
+.calendar__content__hours__container {
     width: 40px;
     min-width: 40px;
     height: 1153px;
     background-color: #DB5461;
 }
 
+.calendar__content__hour {
+    font-size: 10px;
+    transform: translateY(-8px);
+    height: 48px;
+    text-align: right;
+    margin-right: 4px;
+}
+
+.calendar__content__hour:first-child {
+    visibility: hidden;
+}
+
+.calendar__content__hour:last-child {
+    height: 6px;
+}
+
 .calendar__content__day {
     height: 1153px;
+    position: relative;
 }
 
 .calendar__content__day:nth-child(even) {
     background-color: #ECE5F0;
 }
 
-.calendar__content__day__event__container {
-    height: 1153px;
-    position: relative;
-    padding-right: 10px;
+.calendar__content__day__slot {
+    position: absolute;
+    height: 48px;
+    width: 100%;
+    border: 1px solid #FAFAFA;
+    box-sizing: border-box;
+    z-index: 0;
+}
+
+.calendar__content__day__slot.today {
+    background-color: #E98A15;
 }
 
 .calendar__content__day__event {
     position: absolute;
     background-color: #59114D;
+    z-index: 1;
+    width: 100%;
 }
