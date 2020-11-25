@@ -18,14 +18,6 @@ const generateArray = (start, end) => {
 
 const isToday = (date, timeZone) => moment().tz(timeZone).isSame(moment(date).tz(timeZone), 'days');
 
-const stopEventPropagation = e => {
-  if (e.stopPropagation) e.stopPropagation();
-  if (e.preventDefault) e.preventDefault();
-  e.cancelBubble = true;
-  e.returnValue = false;
-  return false;
-}
-
 const minDayWidth = 60;
 
 const minutesToPixels = (minutes, pixelsPerHour) => {
@@ -109,7 +101,9 @@ const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, events, on
                 .filter(event => event.allDay)
                 .filter(event => moment(date).tz(timeZone).isSame(moment(event.start).tz(timeZone), 'days'))
                 .map((event, index) => (
-                  <div key={index}>
+                  <div key={index} className='calendar__header__event'
+                    title={event.summary}
+                  >
                     {event.summary}
                   </div>
                 ))
@@ -155,7 +149,9 @@ const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, events, on
                     .map((event, index) => (
                         <div key={index} className='calendar__content__day__event' style={{
                           top: calcTop(event.start, timeZone, minHour, pixelsPerHour),
-                          height: calcHeight(event.start, event.end, timeZone, maxHour, pixelsPerHour)}}>
+                          height: calcHeight(event.start, event.end, timeZone, maxHour, pixelsPerHour)}}
+                          title={event.summary}
+                        >
                           {event.summary}
                         </div>
                     ))
