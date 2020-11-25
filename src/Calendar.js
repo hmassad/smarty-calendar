@@ -45,7 +45,7 @@ const calcHeight = (start, end, timeZone, maxHour, pixelsPerHour) => {
   return minutesToPixels(minutes, pixelsPerHour);
 }
 
-const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, events, onCreate, className, style }) => {
+const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, pixelsPerHour = 48, events, onCreate, className, style }) => {
 
   const containerRef = useRef();
   const [dayWidth, setDayWidth] = useState(0);
@@ -65,7 +65,6 @@ const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, events, on
     };
   }, [handleResize]);
 
-  const [pixelsPerHour, setPixelsPerHour] = useState(30);
   const [nowTop, setNowTop] = useState(() => {
     const now = moment().tz(timeZone);
     if (now.hours() < minHour)
@@ -86,6 +85,8 @@ const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, events, on
       clearInterval(intervalHandle);
     };
   }, [timeZone, minHour, pixelsPerHour]);
+
+  const [draggingSlot, setDraggingSlot] = useState();
 
   console.debug('render')
   return (
@@ -156,6 +157,9 @@ const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, events, on
                         </div>
                     ))
                 }
+                { draggingSlot ? (
+                  <div className='calendar__content__day__dragging_event'>dragging slot</div>
+                ) : null }
               </div>
 
               { isToday_ && nowTop ? (<>
