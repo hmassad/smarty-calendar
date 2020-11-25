@@ -47,8 +47,8 @@ function App() {
 
   return (<>
     <h1>Some title</h1>
-    <Calendar currentDate={currentDate} timeZone={timeZone} events={events} onCreate={handleCreate} style={{height: 800}}
-    minHour={5} maxHour={22}/>
+    <Calendar currentDate={currentDate} timeZone={timeZone} events={events} onCreate={handleCreate}
+      style={{height: 500}} minHour={5} maxHour={22}/>
   </>)
 }
 

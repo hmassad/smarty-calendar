@@ -51,8 +51,7 @@ const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, events, on
   const [dayWidth, setDayWidth] = useState(0);
 
   const handleResize = useCallback(e => {
-    console.debug('calculate width of each element');
-
+    // calculate width of each element
     let newDayWidth = (containerRef.current.clientWidth - 40 - 22) / 7;
     if (newDayWidth < minDayWidth) newDayWidth = minDayWidth;
     setDayWidth(newDayWidth);
@@ -88,6 +87,7 @@ const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, events, on
     };
   }, [timeZone, minHour, pixelsPerHour]);
 
+  console.debug('render')
   return (
     <div className={`calendar__container ${className || ""}`} style={style} ref={containerRef}>
 
