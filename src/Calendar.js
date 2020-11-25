@@ -103,7 +103,18 @@ const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, events, on
         <div className='calendar__header__left-spacer'>
         </div>
         {weekDates(currentDate, timeZone).map(date => (
-          <div key={date} style={{width: dayWidth, minWidth: dayWidth, maxWidth: dayWidth}}>{moment(date).tz(timeZone).format()}</div>
+          <div key={date} style={{width: dayWidth, minWidth: dayWidth, maxWidth: dayWidth}}>
+            <h4 style={{textAlign: 'center'}}>{moment(date).tz(timeZone).format('ddd D')}</h4>
+            {events
+                .filter(event => event.allDay)
+                .filter(event => moment(date).tz(timeZone).isSame(moment(event.start).tz(timeZone), 'days'))
+                .map((event, index) => (
+                  <div key={index}>
+                    {event.summary}
+                  </div>
+                ))
+            }
+          </div>
         ))}
         <div className='calendar__header__right-spacer'>
         </div>
