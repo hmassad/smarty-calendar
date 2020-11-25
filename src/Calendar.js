@@ -12,8 +12,8 @@ const weekDates = (date, timeZone) => {
   return _weekDates;
 }
 
-const timesOfDay = () => {
-  return [...Array(24)].map((v, i) => i);
+const generateArray = (start, end) => {
+  return [...Array(end - start)].map((_, i) => start + i);
 }
 
 const isToday = (date, timeZone) => moment().tz(timeZone).isSame(moment(date).tz(timeZone), 'days');
@@ -36,21 +36,24 @@ const hoursToPixels = (hours, pixelsPerHour) => {
   return minutesToPixels(hours * 60, pixelsPerHour);
 }
 
-const calcTop = (date, timeZone, pixelsPerHour) => {
+const calcTop = (date, timeZone, minHour, pixelsPerHour) => {
   const m = moment(date).tz(timeZone);
-  const startOfDay = m.clone().startOf('days');
+  if (m.hours() < minHour) m.hours(minHour);
+  const startOfDay = m.clone().startOf('days').add(minHour, 'hours');
   const minutes = m.diff(startOfDay, 'minutes');
-  return pixelsPerHour / 60 * minutes;
+  return minutesToPixels(minutes, pixelsPerHour);
 };
 
-const calcHeight = (start, end, timeZone, pixelsPerHour) => {
+const calcHeight = (start, end, timeZone, maxHour, pixelsPerHour) => {
   const startM = moment(start).tz(timeZone);
-  const endM = moment(end).tz(timeZone);
+  let endM = moment(end).tz(timeZone);
+  if (!endM.isSame(startM, 'days')) endM = startM.clone().endOf('days');
+  if (endM.hours() > maxHour) endM.hours(maxHour - 1);
   const minutes = endM.diff(startM, 'minutes');
-  return pixelsPerHour / 60 * minutes;
+  return minutesToPixels(minutes, pixelsPerHour);
 }
 
-const Calendar = ({ currentDate, timeZone, events, onCreate, className, style }) => {
+const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, events, onCreate, className, style }) => {
 
   const containerRef = useRef();
   const [dayWidth, setDayWidth] = useState(0);
@@ -71,21 +74,30 @@ const Calendar = ({ currentDate, timeZone, events, onCreate, className, style })
     };
   }, [handleResize]);
 
-  const [pixelsPerHour, setPixelsPerHour] = useState(32);
-  const [nowTop, setNowTop] = useState(calcTop(new Date(), timeZone, pixelsPerHour));
+  const [pixelsPerHour, setPixelsPerHour] = useState(30);
+  const [nowTop, setNowTop] = useState(() => {
+    const now = moment().tz(timeZone);
+    if (now.hours() < minHour)
+      return null;
+    return calcTop(new Date(), timeZone, minHour, pixelsPerHour);
+  });
 
   useEffect(() => {
     const intervalHandle = setInterval(() => {
-      setNowTop(new Date(), timeZone, pixelsPerHour);
+      const now = moment().tz(timeZone);
+      if (now.hours() < minHour) {
+        setNowTop(null);
+      } else {
+        setNowTop(calcTop(new Date(), timeZone, minHour, pixelsPerHour));
+      }
     }, 30 * 1000);
     return () => {
       clearInterval(intervalHandle);
     };
-  }, [timeZone, pixelsPerHour]);
+  }, [timeZone, minHour, pixelsPerHour]);
 
   return (
     <div className={`calendar__container ${className || ""}`} style={style} ref={containerRef}>
-
 
       <div className='calendar__header'>
         <div className='calendar__header__left-spacer'>
@@ -98,12 +110,12 @@ const Calendar = ({ currentDate, timeZone, events, onCreate, className, style })
       </div>
 
       <div className='calendar__content'>
-        <div className='calendar__content__hours__container' style={{height: 24 * pixelsPerHour}}>
-        { [...timesOfDay(), 24].map((tod) => (
-          <div key={tod} className='calendar__content__hour' style={{height: pixelsPerHour}}>
-            {`${moment(currentDate).tz(timeZone).startOf('weeks').add(tod, 'hours').format('ha')}`}
-          </div>
-        ))}
+        <div className='calendar__content__hours__container' style={{height: hoursToPixels(maxHour - minHour, pixelsPerHour)}}>
+          { generateArray(minHour, maxHour + 1).map((hour) => (
+            <div key={hour} className='calendar__content__hour' style={{height: hoursToPixels(1, pixelsPerHour)}}>
+              {`${moment(currentDate).tz(timeZone).startOf('weeks').add(hour, 'hours').format('ha')}`}
+            </div>
+          ))}
         </div>
 
         {weekDates(currentDate, timeZone).map(date => {
@@ -112,12 +124,12 @@ const Calendar = ({ currentDate, timeZone, events, onCreate, className, style })
 
           return (
             <div key={date} className='calendar__content__day'
-              style={{width: dayWidth, minWidth: dayWidth, maxWidth: dayWidth, height: 24 * pixelsPerHour}}>
+              style={{width: dayWidth, minWidth: dayWidth, maxWidth: dayWidth, height: hoursToPixels(maxHour - minHour, pixelsPerHour)}}>
 
               <div className='calendar__content__day__event__container'>
-                { timesOfDay().map((tod) => (
-                  <div key={tod} className={`calendar__content__day__slot ${isToday_ ? 'today' : ''}`}
-                    style={{top: hoursToPixels(tod, pixelsPerHour), height: pixelsPerHour}}/>
+                { generateArray(minHour, maxHour).map(hour => (
+                  <div key={hour} className={`calendar__content__day__slot ${isToday_ ? 'today' : ''}`}
+                    style={{top: hoursToPixels(hour - minHour, pixelsPerHour), height: hoursToPixels(1, pixelsPerHour)}}/>
                 ))}
               </div>
 
@@ -125,17 +137,21 @@ const Calendar = ({ currentDate, timeZone, events, onCreate, className, style })
                 { events
                     .filter(event => !event.allDay)
                     .filter(event => startOfDay.isSame(moment(event.start).tz(timeZone), 'days'))
+                    .filter(event => moment(event.start).tz(timeZone).hours() <= maxHour)
+                    .filter(event =>
+                      !moment(event.start).tz(timeZone).isSame(moment(event.end).tz(timeZone), 'days') ||
+                      moment(event.start).tz(timeZone).hours() <= maxHour)
                     .map((event, index) => (
                         <div key={index} className='calendar__content__day__event' style={{
-                          top: calcTop(event.start, timeZone, pixelsPerHour),
-                          height: calcHeight(event.start, event.end, timeZone, pixelsPerHour)}}>
+                          top: calcTop(event.start, timeZone, minHour, pixelsPerHour),
+                          height: calcHeight(event.start, event.end, timeZone, maxHour, pixelsPerHour)}}>
                           {event.summary}
                         </div>
                     ))
                 }
               </div>
 
-              { isToday_ ? (<>
+              { isToday_ && nowTop ? (<>
                 <div className='calendar__content__day__today__cap' style={{top: nowTop}}></div>
                 <div className='calendar__content__day__today__line' style={{top: nowTop}}></div>
               </>) : null}
