@@ -90,6 +90,21 @@
     text-overflow: ellipsis;
 }
 
+.calendar__content__day__drag-create-event {
+    position: absolute;
+    z-index: 500;
+    width: 100%;
+    font-size: 12px;
+    background-color: #CC2936;
+    color: white;
+
+    border-radius: 4px;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .calendar__content__day__today__cap {
     border-radius: 50%;
     background: #CC2936;

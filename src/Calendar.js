@@ -48,10 +48,13 @@ const calcHeight = (start, end, timeZone, maxHour, pixelsPerHour) => {
 const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, pixelsPerHour = 48, events, onCreate, className, style }) => {
 
   const containerRef = useRef();
+  const calendarContentRef = useRef();
   const [dayWidth, setDayWidth] = useState(0);
 
+  const [dragCreateEvent, setDragCreateEvent] = useState(null);
+
   const handleResize = useCallback(e => {
-    // calculate width of each element
+    // calculate width of each day column
     let newDayWidth = (containerRef.current.clientWidth - 40 - 22) / 7;
     if (newDayWidth < minDayWidth) newDayWidth = minDayWidth;
     setDayWidth(newDayWidth);
@@ -67,10 +70,15 @@ const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, pixelsPerH
 
   const [nowTop, setNowTop] = useState(() => {
     const now = moment().tz(timeZone);
-    if (now.hours() < minHour)
+    if (now.hours() < minHour || now.hours() > maxHour)
       return null;
     return calcTop(new Date(), timeZone, minHour, pixelsPerHour);
   });
+
+  useEffect(() => {
+    calendarContentRef.current.scrollTop = nowTop;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const intervalHandle = setInterval(() => {
@@ -86,9 +94,63 @@ const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, pixelsPerH
     };
   }, [timeZone, minHour, pixelsPerHour]);
 
-  const [draggingSlot, setDraggingSlot] = useState();
+  const handleMouseMove = useCallback(e => {
+    setDragCreateEvent(prev => {
+      console.debug('handleMouseMove', prev);
+      if (!prev) return prev;
+      return {
+        ...prev,
+        end: moment(prev.start).tz(timeZone).add(245, 'minutes') // todo translate e.pageX, e.pageY
+      };
+    });
+  }, [timeZone]);
+
+  const handleMouseDown = useCallback((e) => {
+    window.getSelection().empty();
+
+    // TODO calendarContentRect can be calculated on resize
+    const calendarContentRect = calendarContentRef.current.getBoundingClientRect();
+    // ignore event if outside events
+    if (
+      e.pageX < calendarContentRect.left + window.scrollX ||
+      e.pageX > calendarContentRect.right + window.scrollX ||
+      e.pageY < calendarContentRect.top + window.scrollY ||
+      e.pageY > calendarContentRect.bottom + window.scrollY
+    ) {
+        console.debug('outside calendarContentRef');
+        return;
+    }
+
+    console.debug({calendarContentRect})
+    setDragCreateEvent({
+      start: moment().tz(timeZone).startOf('days').add(10, 'hours').toDate(), // todo translate e.pageX, e.pageY
+      end: moment().tz(timeZone).startOf('days').add(10.5, 'hours').toDate(),
+      summary: 'new event'
+    });
+
+    window.addEventListener('mousemove', handleMouseMove);
+  }, [handleMouseMove, timeZone]);
+
+  const handleMouseUp = useCallback((e) => {
+    console.debug('handleMouseUp', e);
+
+    window.removeEventListener('mousemove', handleMouseMove);
+    onCreate && onCreate(dragCreateEvent);
+    setDragCreateEvent(null);
+  }, [handleMouseMove, dragCreateEvent, onCreate]);
+
+  useEffect(() => {
+    window.addEventListener('mousedown', handleMouseDown);
+    window.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      window.removeEventListener('mousedown', handleMouseDown);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [handleMouseDown, handleMouseUp]);
 
   console.debug('render')
+
   return (
     <div className={`calendar__container ${className || ""}`} style={style} ref={containerRef}>
 
@@ -102,9 +164,7 @@ const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, pixelsPerH
                 .filter(event => event.allDay)
                 .filter(event => moment(date).tz(timeZone).isSame(moment(event.start).tz(timeZone), 'days'))
                 .map((event, index) => (
-                  <div key={index} className='calendar__header__event'
-                    title={event.summary}
-                  >
+                  <div key={index} className='calendar__header__event' title={event.summary}>
                     {event.summary}
                   </div>
                 ))
@@ -115,7 +175,7 @@ const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, pixelsPerH
         </div>
       </div>
 
-      <div className='calendar__content'>
+      <div className='calendar__content' ref={calendarContentRef}>
         <div className='calendar__content__hours__container' style={{height: hoursToPixels(maxHour - minHour, pixelsPerHour)}}>
           { generateArray(minHour, maxHour + 1).map((hour) => (
             <div key={hour} className='calendar__content__hour' style={{height: hoursToPixels(1, pixelsPerHour)}}>
@@ -157,8 +217,14 @@ const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, pixelsPerH
                         </div>
                     ))
                 }
-                { draggingSlot ? (
-                  <div className='calendar__content__day__dragging_event'>dragging slot</div>
+                { dragCreateEvent && moment(dragCreateEvent.start).tz(timeZone).isSame(moment(date).tz(timeZone), 'days') ? (
+                  <div className='calendar__content__day__drag-create-event' style={{
+                    top: calcTop(dragCreateEvent.start, timeZone, minHour, pixelsPerHour),
+                    height: calcHeight(dragCreateEvent.start, dragCreateEvent.end, timeZone, maxHour, pixelsPerHour)
+                  }}>
+                    {moment(dragCreateEvent.start).tz(timeZone).format('h:mma')} - {moment(dragCreateEvent.end).tz(timeZone).format('h:mma')}<br/>
+                    {dragCreateEvent.summary}
+                  </div>
                 ) : null }
               </div>
 
