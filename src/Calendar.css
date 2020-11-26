@@ -1,0 +1,144 @@
+/* palette https://coolors.co/cc2936-d5c6e0-3b3355-5d5d81-bfcde0 */
+
+.calendar__container {
+    box-sizing: border-box;
+
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: hidden;
+}
+
+.calendar__container *, *:before, *:after {
+    box-sizing: inherit;
+}
+
+.calendar__header {
+    display: flex;
+    background-color: #5d5d81;
+}
+
+.calendar__header__left-spacer {
+    width: 40px;
+    min-width: 40px;
+}
+
+/* give space for the vertical scrollbar */
+.calendar__header__right-spacer {
+    width: 22px; /* TODO use smarty scrollbar style */
+    min-width: 22px; /* TODO use smarty scrollbar style */
+}
+
+.calendar__content {
+    flex: 1;
+    display: flex;
+    overflow-x: auto;
+    overflow-y: scroll;
+}
+
+.calendar__content__hours__container {
+    width: 40px;
+    min-width: 40px;
+}
+
+.calendar__content__hour {
+    transform: translateY(-8px);
+    font-size: 10px;
+    text-align: right;
+    margin-right: 4px;
+}
+
+.calendar__content__hour:first-child {
+    visibility: hidden;
+}
+
+.calendar__content__hour:last-child {
+    height: 6px;
+}
+
+.calendar__content__day {
+    position: relative;
+}
+
+.calendar__content__day__slot {
+    position: absolute;
+    width: 100%;
+    border-bottom: 1px solid #DDDDDD;
+    border-right: 1px solid #DDDDDD;
+    box-sizing: border-box;
+    z-index: 0;
+}
+
+.calendar__content__day__slot.today {
+    background-color: #bfcde0;
+}
+
+.calendar__header__event {
+    font-size: 12px;
+    background-color: #D5C6E0;
+    color: black;
+    border-radius: 4px;
+}
+
+.calendar__content__day__event {
+    padding: 4px;
+
+    position: absolute;
+    z-index: 1;
+    width: 100%;
+    font-size: 12px;
+    background-color: #3B3355;
+    color: white;
+
+    border-radius: 4px;
+    border: 1px solid white;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.calendar__content__day__drag-create-event {
+    position: absolute;
+    z-index: 500;
+    width: 100%;
+    font-size: 12px;
+    background-color: #CC2936;
+    color: white;
+
+    border-radius: 4px;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.calendar__content__day__today__cap {
+    border-radius: 50%;
+    background: #CC2936;
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    transform: translateX(-5px) translateY(-5px);
+    z-index: 2;
+}
+
+.calendar__content__day__today__line {
+    position: absolute;
+    height: 0;
+    width: 100%;
+    border-top: 2px solid #CC2936;
+    z-index: 2;
+}
+
+.point {
+    position: absolute;
+    transform: translateX(-20px) translateY(-20px);
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    background-color: blueviolet;
+    color: white;
+    z-index: -1;
+}
