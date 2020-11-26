@@ -8,7 +8,7 @@ function App() {
   const [timeZone] = useState('America/Argentina/Buenos_Aires');
   const [currentDate] = useState(moment().tz(timeZone));
 
-  const [events, setAllDayEvents] = useState(() => {
+  const [events, setEvents] = useState(() => {
     const today = moment().tz(timeZone).startOf('days');
     const yesterday = today.clone().subtract(1, 'days');
     const tomorrow = today.clone().add(1, 'days');
@@ -42,13 +42,13 @@ function App() {
   });
 
   const handleCreate = e => {
-    console.debug('handleCreate', e);
+    setEvents(prev => [...prev, e]);
   };
 
   return (<>
     <h1>Some title</h1>
     <Calendar currentDate={currentDate} timeZone={timeZone} events={events} onCreate={handleCreate}
-      style={{height: 500}} pixelsPerHour={32} minHour={5} maxHour={22}/>
+      style={{height: 900}} pixelsPerHour={32} minHour={0} maxHour={24}/>
   </>)
 }
 

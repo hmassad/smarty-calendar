@@ -21,7 +21,7 @@ const isToday = (date, timeZone) => moment().tz(timeZone).isSame(moment(date).tz
 const minDayWidth = 60;
 
 const minutesToPixels = (minutes, pixelsPerHour) => {
-  return pixelsPerHour / 60 * minutes;
+  return pixelsPerHour * minutes / 60;
 }
 
 const hoursToPixels = (hours, pixelsPerHour) => {
@@ -43,7 +43,20 @@ const calcHeight = (start, end, timeZone, maxHour, pixelsPerHour) => {
   if (endM.hours() > maxHour) endM.hours(maxHour - 1);
   const minutes = endM.diff(startM, 'minutes');
   return minutesToPixels(minutes, pixelsPerHour);
-}
+};
+
+const calcDateFromPixels = (startDate, timeZone, pixels, pixelsPerHour) => {
+  const minutes = Math.floor(pixels / pixelsPerHour * 60);
+  return moment(startDate).tz(timeZone).add(minutes, 'minutes').toDate();
+};
+
+const unselectText = () => {
+  if (document.selection) {
+    document.selection.empty()
+  } else {
+    window.getSelection().removeAllRanges()
+  }
+};
 
 const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, pixelsPerHour = 48, events, onCreate, className, style }) => {
 
@@ -51,6 +64,7 @@ const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, pixelsPerH
   const calendarContentRef = useRef();
   const [dayWidth, setDayWidth] = useState(0);
 
+  const dragStartRef = useRef(null);
   const [dragCreateEvent, setDragCreateEvent] = useState(null);
 
   const handleResize = useCallback(e => {
@@ -86,55 +100,85 @@ const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, pixelsPerH
       if (now.hours() < minHour) {
         setNowTop(null);
       } else {
-        setNowTop(calcTop(new Date(), timeZone, minHour, pixelsPerHour));
+        setNowTop(calcTop(now.toDate(), timeZone, minHour, pixelsPerHour));
       }
-    }, 30 * 1000);
+    }, 1000);
     return () => {
       clearInterval(intervalHandle);
     };
   }, [timeZone, minHour, pixelsPerHour]);
 
   const handleMouseMove = useCallback(e => {
-    setDragCreateEvent(prev => {
-      console.debug('handleMouseMove', prev);
-      if (!prev) return prev;
-      return {
-        ...prev,
-        end: moment(prev.start).tz(timeZone).add(245, 'minutes') // todo translate e.pageX, e.pageY
-      };
-    });
-  }, [timeZone]);
+    if (!dragStartRef.current) return;
 
-  const handleMouseDown = useCallback((e) => {
-    window.getSelection().empty();
+    unselectText();
 
     // TODO calendarContentRect can be calculated on resize
     const calendarContentRect = calendarContentRef.current.getBoundingClientRect();
-    // ignore event if outside events
-    if (
-      e.pageX < calendarContentRect.left + window.scrollX ||
-      e.pageX > calendarContentRect.right + window.scrollX ||
-      e.pageY < calendarContentRect.top + window.scrollY ||
-      e.pageY > calendarContentRect.bottom + window.scrollY
-    ) {
-        console.debug('outside calendarContentRef');
-        return;
+    let top = e.clientY - calendarContentRect.top;
+    if (top < 0) top = 0;
+    if (top > (maxHour - minHour) * pixelsPerHour) top = (maxHour - minHour) * pixelsPerHour;
+
+    // TODO adjust top to 5 min intervals
+
+    // only eval Y, do not filter point outside day
+    // if event is higher than dragStartRef, then start = event and end = dragStart
+    // if event is lower than dragStart, then start = dragStart and end = event
+    if (top <= dragStartRef.current.top) {
+      setDragCreateEvent(prev => ({
+        ...prev,
+        start: calcDateFromPixels(dragStartRef.current.day, timeZone, top, pixelsPerHour),
+        end: calcDateFromPixels(dragStartRef.current.day, timeZone, dragStartRef.current.top, pixelsPerHour)
+      }));
+    } else {
+      setDragCreateEvent(prev => ({
+        ...prev,
+        start: calcDateFromPixels(dragStartRef.current.day, timeZone, dragStartRef.current.top, pixelsPerHour),
+        end: calcDateFromPixels(dragStartRef.current.day, timeZone, top, pixelsPerHour)
+      }));
+    }
+  }, [maxHour, minHour, pixelsPerHour, timeZone]);
+
+  const handleMouseDown = useCallback(e => {
+    if (e.button !== 0) return;
+
+    unselectText();
+
+    // TODO calendarContentRect can be calculated on resize
+    const calendarContentRect = calendarContentRef.current.getBoundingClientRect();
+    const left = e.clientX - calendarContentRect.left - 40;
+    const top = e.clientY - calendarContentRect.top;
+    if (left < 0 ||
+      left > dayWidth * 7 ||
+      top < 0 ||
+      top > (maxHour - minHour) * pixelsPerHour) {
+      return;
     }
 
-    console.debug({calendarContentRect})
+    const day = moment(currentDate).tz(timeZone).startOf('week').add(Math.floor(left / dayWidth), 'days').toDate();
+    dragStartRef.current = ({
+      left,
+      top,
+      day
+    });
+    const start = calcDateFromPixels(day, timeZone, top, pixelsPerHour);
+    const end = moment(start).add(30, 'minutes').toDate();
+
+    // TODO adjust top to 5 min intervals
+
     setDragCreateEvent({
-      start: moment().tz(timeZone).startOf('days').add(10, 'hours').toDate(), // todo translate e.pageX, e.pageY
-      end: moment().tz(timeZone).startOf('days').add(10.5, 'hours').toDate(),
+      start,
+      end,
       summary: 'new event'
     });
 
     window.addEventListener('mousemove', handleMouseMove);
-  }, [handleMouseMove, timeZone]);
+  }, [dayWidth, maxHour, minHour, pixelsPerHour, currentDate, timeZone, handleMouseMove]);
 
   const handleMouseUp = useCallback((e) => {
-    console.debug('handleMouseUp', e);
-
+    if (e.button !== 0) return;
     window.removeEventListener('mousemove', handleMouseMove);
+    dragStartRef.current = null;
     onCreate && onCreate(dragCreateEvent);
     setDragCreateEvent(null);
   }, [handleMouseMove, dragCreateEvent, onCreate]);
@@ -149,18 +193,18 @@ const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, pixelsPerH
     };
   }, [handleMouseDown, handleMouseUp]);
 
-  console.debug('render')
+  // console.debug(new Date(), 'render')
 
   return (
     <div className={`calendar__container ${className || ""}`} style={style} ref={containerRef}>
 
       <div className='calendar__header'>
-        <div className='calendar__header__left-spacer'>
-        </div>
+        <div className='calendar__header__left-spacer'/>
         {weekDates(currentDate, timeZone).map(date => (
           <div key={date} style={{width: dayWidth, minWidth: dayWidth, maxWidth: dayWidth}}>
-            <h4 style={{textAlign: 'center'}}>{moment(date).tz(timeZone).format('ddd D')}</h4>
+            <span style={{textAlign: 'center'}}>{moment(date).tz(timeZone).format('ddd D')} </span>
             {events
+                .filter(event => event) // HACK hot reloader throws an error
                 .filter(event => event.allDay)
                 .filter(event => moment(date).tz(timeZone).isSame(moment(event.start).tz(timeZone), 'days'))
                 .map((event, index) => (
@@ -201,6 +245,7 @@ const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, pixelsPerH
 
               <div className='calendar__content__day__event__container'>
                 { events
+                    .filter(event => event) // HACK hot reloader throws an error
                     .filter(event => !event.allDay)
                     .filter(event => startOfDay.isSame(moment(event.start).tz(timeZone), 'days'))
                     .filter(event => moment(event.start).tz(timeZone).hours() <= maxHour)
