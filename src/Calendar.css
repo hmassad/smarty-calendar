@@ -82,8 +82,6 @@
 }
 
 .calendar__content__day__event {
-    padding: 4px;
-
     position: absolute;
     z-index: 1;
     width: 100%;
@@ -92,11 +90,44 @@
     color: white;
 
     border-radius: 4px;
-    border: 1px solid white;
+    /* border: 1px solid white; */
 
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.calendar__content__day__event__delete {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 1000;
+    cursor: pointer;
+}
+
+.calendar__content__day__event__container {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar__content__day__event__container__top {
+    cursor: n-resize;
+    height: 5px;
+}
+
+.calendar__content__day__event__container__main {
+    cursor: move;
+    flex: 1;
+}
+
+.calendar__content__day__event__container__bottom {
+    cursor: s-resize;
+    height: 5px;
 }
 
 .calendar__content__day__drag-create-event {
@@ -112,6 +143,8 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+
+    cursor: default;
 }
 
 .calendar__content__day__today__cap {
