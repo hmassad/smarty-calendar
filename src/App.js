@@ -41,14 +41,28 @@ function App() {
     ];
   });
 
-  const handleCreate = e => {
-    setEvents(prev => [...prev, e]);
+  const handleCreate = event => {
+    setEvents(prev => [...prev, event]);
   };
+
+  const handleChange = (originalEvent, newEvent) => {
+    setEvents(prev => {
+      const newEvents = prev.filter(event => event !== originalEvent);
+      newEvents.push({...originalEvent, ...newEvent});
+      return newEvents;
+    })
+  }
+
+  const handleDelete = (event) => {
+    setEvents(prev => {
+      return prev.filter(event1 => event !== event1);
+    })
+  }
 
   return (<>
     <h1>Some title</h1>
-    <Calendar currentDate={currentDate} timeZone={timeZone} events={events} onCreate={handleCreate}
-      style={{height: 900}} pixelsPerHour={32} minHour={0} maxHour={24}/>
+    <Calendar currentDate={currentDate} timeZone={timeZone} events={events} onCreate={handleCreate} onChange={handleChange} onDelete={handleDelete}
+      style={{height: 500}} pixelsPerHour={40} minHour={0} maxHour={24}/>
   </>)
 }
 
