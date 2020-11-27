@@ -60,9 +60,11 @@ function App() {
   }
 
   return (<>
-    <h1>Some title</h1>
-    <Calendar currentDate={currentDate} timeZone={timeZone} events={events} onCreate={handleCreate} onChange={handleChange} onDelete={handleDelete}
-      style={{height: 500}} pixelsPerHour={50} minHour={0} maxHour={24}/>
+    <div style={{height: "100vh", display: "flex", flexDirection: "column"}}>
+      <h1>Some title</h1>
+      <Calendar currentDate={currentDate} timeZone={timeZone} events={events} onCreate={handleCreate} onChange={handleChange} onDelete={handleDelete}
+        pixelsPerHour={50} minHour={0} maxHour={24}/>
+    </div>
   </>)
 }
 

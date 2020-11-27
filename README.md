@@ -5,7 +5,6 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 ## 🚨 Pending
 
-- wrong calculation of time in events, it calculates 4 when it must be 5, must review
 - edit/confirm event popup
 - look and feel of events (creating, dragging, open popup, normal)
 - do not allow overlapping of events when dragging
@@ -15,7 +14,7 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 - single day view, three day view
 - multiline ellipsis for all day events
 - use colors from events
-- allow 30 min slots for time of day
+- vertical slots of 30 minutes
 - add exclusion zones, like working hours
 
 ## 🚀 Improvement Opportunities
@@ -32,3 +31,4 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 - allow event deletion
 - variable pixel height
 - prevent render of unaffected components on mouse move
+- wrong calculation of time in events, it calculates 4 when it must be 5, must review

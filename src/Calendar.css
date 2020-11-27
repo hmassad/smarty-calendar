@@ -17,17 +17,7 @@
 .calendar__header {
     display: flex;
     background-color: #5d5d81;
-}
-
-.calendar__header__left-spacer {
-    width: 40px;
-    min-width: 40px;
-}
-
-/* give space for the vertical scrollbar */
-.calendar__header__right-spacer {
-    width: 22px; /* TODO use smarty scrollbar style */
-    min-width: 22px; /* TODO use smarty scrollbar style */
+    color: white;
 }
 
 .calendar__content {
@@ -38,8 +28,8 @@
 }
 
 .calendar__content__hours__container {
-    width: 40px;
-    min-width: 40px;
+    color: #5d5d81;
+    background-color: white;
 }
 
 .calendar__content__hour {
@@ -117,7 +107,6 @@
 
 .calendar__content__day__event__container__top {
     cursor: n-resize;
-    height: 5px;
 }
 
 .calendar__content__day__event__container__main {
@@ -127,7 +116,6 @@
 
 .calendar__content__day__event__container__bottom {
     cursor: s-resize;
-    height: 5px;
 }
 
 .calendar__content__day__drag-create-event {
@@ -163,15 +151,4 @@
     width: 100%;
     border-top: 2px solid #CC2936;
     z-index: 2;
-}
-
-.point {
-    position: absolute;
-    transform: translateX(-20px) translateY(-20px);
-    width: 40px;
-    height: 40px;
-    border-radius: 20px;
-    background-color: blueviolet;
-    color: white;
-    z-index: -1;
 }
