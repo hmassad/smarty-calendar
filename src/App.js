@@ -62,7 +62,7 @@ function App() {
   return (<>
     <h1>Some title</h1>
     <Calendar currentDate={currentDate} timeZone={timeZone} events={events} onCreate={handleCreate} onChange={handleChange} onDelete={handleDelete}
-      style={{height: 500}} pixelsPerHour={40} minHour={0} maxHour={24}/>
+      style={{height: 500}} pixelsPerHour={50} minHour={0} maxHour={24}/>
   </>)
 }
 

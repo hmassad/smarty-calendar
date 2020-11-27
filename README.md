@@ -5,12 +5,10 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 ## 🚨 Pending
 
-- prevent render of unaffected components on mouse move
-- wrong calculation of events, it calculates 4 when it must be 5
-- edit event popup
-- confirm event popup
-- padding and margin on events
-- do not allow overlapping of events when creating or moving
+- wrong calculation of time in events, it calculates 4 when it must be 5, must review
+- edit/confirm event popup
+- look and feel of events (creating, dragging, open popup, normal)
+- do not allow overlapping of events when dragging
 
 ## ✨ Nice to have
 
@@ -33,3 +31,4 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 - drag move
 - allow event deletion
 - variable pixel height
+- prevent render of unaffected components on mouse move
