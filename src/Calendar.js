@@ -54,14 +54,6 @@ const calcDateFromPixels = (startDate, timeZone, pixels, pixelsPerHour) => {
   return moment(startDate).tz(timeZone).add(minutes, 'minutes').toDate();
 };
 
-const unselectText = () => {
-  if (document.selection) {
-    document.selection.empty()
-  } else {
-    window.getSelection().removeAllRanges()
-  }
-};
-
 const DAY_MIN_WIDTH_PIXELS = 60;
 const STEP_MINUTES = 5;
 const TOP_HANDLE_HEIGHT_PIXELS = 10;
@@ -125,7 +117,6 @@ const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, pixelsPerH
 
   const handleMouseMove = useCallback(e => {
     if (!dragContextRef.current) return;
-    unselectText();
     // TODO cancel drag on secondary button click
 
     const calendarContentRect = calendarContentRef.current.getBoundingClientRect();
@@ -220,8 +211,6 @@ const Calendar = ({ currentDate, timeZone, minHour = 0, maxHour = 24, pixelsPerH
   const handleMouseDown = useCallback(e => {
     if (e.button !== 0) return;
     if (e.target.onclick) return; // allow clicking on inner elements
-
-    unselectText();
 
     const calendarContentRect = calendarContentRef.current.getBoundingClientRect();
     const left = e.clientX - calendarContentRect.left - HOURS_CONTAINER_WIDTH_PIXELS;

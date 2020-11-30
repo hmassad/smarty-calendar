@@ -1,7 +1,10 @@
 /* palette https://coolors.co/cc2936-d5c6e0-3b3355-5d5d81-bfcde0 */
 
 .calendar__container {
+    user-select: none; /* prevent text selection */
+
     box-sizing: border-box;
+    background-clip: border-box;
 
     display: flex;
     flex-direction: column;

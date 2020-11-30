@@ -14,6 +14,11 @@ function App() {
     const tomorrow = today.clone().add(1, 'days');
     return [
       {
+        start: moment('2020-11-23T04:30:00.000-03:00').toDate(),
+        end: moment('2020-11-23T14:30:00.000-03:00').toDate(),
+        summary: '24 con dani'
+      },
+      {
         start: yesterday.clone().add(11, 'hours').add(15, 'minutes').toDate(),
         end: yesterday.clone().add(12, 'hours').add(10, 'minutes').toDate(),
         summary: 'yesterday 11:15a to 12:10a'
@@ -63,7 +68,7 @@ function App() {
     <div style={{height: "100vh", display: "flex", flexDirection: "column"}}>
       <h1>Some title</h1>
       <Calendar currentDate={currentDate} timeZone={timeZone} events={events} onCreate={handleCreate} onChange={handleChange} onDelete={handleDelete}
-        pixelsPerHour={50} minHour={0} maxHour={24}/>
+        pixelsPerHour={30} minHour={0} maxHour={24}/>
     </div>
   </>)
 }

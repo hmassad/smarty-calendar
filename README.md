@@ -7,7 +7,8 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 - edit/confirm event popup
 - look and feel of events (creating, dragging, open popup, normal)
-- do not allow overlapping of events when dragging
+- do not allow overlapping of events while dragging
+- when minHour and maxHour are not default, dragging doesn't work
 
 ## ✨ Nice to have
 
@@ -22,7 +23,7 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 - 4 initial renders, should be 2
 - double render on every time update
 
-## ✔ Done
+## ✅ Done
 
 - this week view
 - adjust to 10 min intervals on drag
