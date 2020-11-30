@@ -9,6 +9,8 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 ## 🚨 Pending
 
 - edit/confirm event popup
+- drag events from one day to the other
+- minimum event duration
 - look and feel of events (creating, dragging, open popup, normal)
 - do not allow overlapping of events while dragging
 - when minHour and maxHour are not default, dragging doesn't work
