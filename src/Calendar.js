@@ -1,24 +1,12 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import moment from 'moment-timezone';
 import './Calendar.css';
-import {checkCollision, nearestMinutes} from './dateUtils';
+import {checkCollision, isToday, nearestMinutes} from './dateUtils';
 import {nearestNumber} from './numberUtils';
-
-const weekDates = (date, timeZone) => {
-  const _weekDates = [];
-  const current = moment(date).tz(timeZone).startOf('weeks');
-  for (let i = 0; i < 7; i++) {
-    _weekDates.push(current.toDate());
-    current.add(1, 'days');
-  }
-  return _weekDates;
-}
 
 const generateArray = (start, end) => {
   return [...Array(end - start)].map((_, i) => start + i);
 }
-
-const isToday = (date, timeZone) => moment().tz(timeZone).isSame(moment(date).tz(timeZone), 'days');
 
 const minutesToPixels = (minutes, pixelsPerHour) => {
   return pixelsPerHour * minutes / 60;
@@ -56,7 +44,23 @@ const DragAction = {
   MOVE: 'MOVE',
 };
 
+export const CalendarType = {
+  SPECIFIC: 'SPECIFIC',
+  GENERIC: 'GENERIC'
+}
+
+export const CalendarView = {
+  WEEK: 'WEEK',
+  WORK_WEEK: 'WORK_WEEK',
+  SINGLE_DAY: 'SINGLE_DAY',
+  THREE_DAYS: 'THREE_DAYS'
+}
+
+const GENERIC_DATE = '2020-01-01T00:00:00Z';
+
 const Calendar = ({
+                    calendarType = CalendarType.SPECIFIC,
+                    calendarView = CalendarView.WEEK,
                     currentDate,
                     timeZone,
                     minHour = 0,
@@ -79,23 +83,66 @@ const Calendar = ({
                     style
                   }) => {
 
+  const columnDates = useMemo(() => {
+    if (calendarType === CalendarType.GENERIC) {
+      switch (calendarView) {
+        case CalendarView.SINGLE_DAY:
+          return [moment(GENERIC_DATE).tz(timeZone).startOf('days')];
+        case CalendarView.WORK_WEEK:
+          return Array.from({length: 5})
+            .map((_, i) => moment(GENERIC_DATE).tz(timeZone).startOf('weeks').add(i + 1, 'days'));
+        case CalendarView.WEEK:
+        default:
+          return Array.from({length: 7})
+            .map((_, i) => moment(GENERIC_DATE).tz(timeZone).startOf('weeks').add(i, 'days'));
+      }
+    } else {
+      switch (calendarView) {
+        case CalendarView.SINGLE_DAY:
+          return [moment(currentDate).tz(timeZone).startOf('days')];
+        case CalendarView.THREE_DAYS:
+          return Array.from({length: 3})
+            .map((_, i) => moment(currentDate).tz(timeZone).startOf('days').add(i, 'days'));
+        case CalendarView.WORK_WEEK:
+          return Array.from({length: 5})
+            .map((_, i) => moment(currentDate).tz(timeZone).startOf('weeks').add(i + 1, 'days'));
+        case CalendarView.WEEK:
+        default:
+          return Array.from({length: 7})
+            .map((_, i) => moment(currentDate).tz(timeZone).startOf('weeks').add(i, 'days'));
+      }
+    }
+  }, [calendarType, calendarView, timeZone, currentDate]);
+
+  /**
+   *
+   * @type {React.MutableRefObject<HTMLElement | undefined | null>}
+   */
   const containerRef = useRef();
+  /**
+   *
+   * @type {React.MutableRefObject<HTMLElement | undefined | null>}
+   */
   const calendarContentRef = useRef();
   const [dayWidth, setDayWidth] = useState(0);
 
   const [nowTop, setNowTop] = useState();
 
   const [isDragging, setDragging] = useState(false);
+  /**
+   *
+   * @type {React.MutableRefObject<{action: (string|DragAction), date: Date, offset: (number|undefined)} | undefined | null>}
+   */
   const dragContextRef = useRef(null);
   const [dragEvent, setDragEvent] = useState(null);
   const [dragOriginalEvent, setOriginalDragEvent] = useState(null);
 
   const handleResize = useCallback(() => {
     // calculate width of each day column
-    let newDayWidth = (containerRef.current.clientWidth - hoursContainerWidth - scrollbarWidth) / 7;
+    let newDayWidth = (containerRef.current.clientWidth - hoursContainerWidth - scrollbarWidth) / columnDates.length;
     if (newDayWidth < dayMinWidth) newDayWidth = dayMinWidth;
     setDayWidth(newDayWidth);
-  }, [dayMinWidth, hoursContainerWidth, scrollbarWidth]);
+  }, [columnDates, dayMinWidth, hoursContainerWidth, scrollbarWidth]);
 
   useEffect(() => {
     window.addEventListener("resize", handleResize);
@@ -135,12 +182,12 @@ const Calendar = ({
     const maxTop = hoursToPixels(maxHour - minHour, pixelsPerHour);
     if (top > maxTop) top = maxTop;
     const left = e.clientX - calendarContentRect.left - hoursContainerWidth;
-    if (left < 0 || left > dayWidth * 7) {
+    if (left < 0 || left > dayWidth * columnDates.length) {
       return;
     }
 
-    const minutesUnderCursor = nearestNumber(pixelsToMinutes(top, pixelsPerHour), step);
-    const dateUnderCursor = moment(currentDate).tz(timeZone).startOf('week').add(Math.floor(left / dayWidth), 'days').add(minutesUnderCursor, 'minutes');
+    const minutesUnderCursor = nearestNumber(minHour * 60 + pixelsToMinutes(top, pixelsPerHour), step);
+    const dateUnderCursor = columnDates[0].clone().add(Math.floor(left / dayWidth), 'days').add(minutesUnderCursor, 'minutes');
 
     // eslint-disable-next-line default-case
     switch (dragContextRef.current.action) {
@@ -183,7 +230,7 @@ const Calendar = ({
           if (events.filter(event => event !== dragOriginalEvent).some(event => checkCollision(event.start, event.end, newStart.toDate(), newEnd.toDate()))) {
             return prev;
           }
-          return{
+          return {
             ...prev,
             start: newStart.toDate(),
             end: newEnd.toDate(),
@@ -237,7 +284,7 @@ const Calendar = ({
         });
         break;
     }
-  }, [currentDate, dayWidth, dragOriginalEvent, events, hoursContainerWidth, isDragging, maxHour, minEventDurationMinutes, minHour, pixelsPerHour, step, timeZone]);
+  }, [columnDates, dayWidth, dragOriginalEvent, events, hoursContainerWidth, isDragging, maxHour, minEventDurationMinutes, minHour, pixelsPerHour, step, timeZone]);
 
   const handleMouseDown = useCallback(e => {
     if (e.button !== 0) return;
@@ -247,12 +294,12 @@ const Calendar = ({
     const left = e.clientX - calendarContentRect.left - hoursContainerWidth;
     let top = e.clientY - calendarContentRect.top + calendarContentRef.current.scrollTop;
     // discard if outside of calendarContentRect
-    if (left < 0 || left > dayWidth * 7 || top < 0 || top > (maxHour - minHour) * pixelsPerHour) {
+    if (left < 0 || left > dayWidth * columnDates.length || top < 0 || top > (maxHour - minHour) * pixelsPerHour) {
       return;
     }
 
-    const minutesUnderCursor = pixelsToMinutes(top, pixelsPerHour);
-    const dateUnderCursor = moment(currentDate).tz(timeZone).startOf('week').add(Math.floor(left / dayWidth), 'days').add(minutesUnderCursor, 'minutes').toDate();
+    const minutesUnderCursor = minHour * 60 + pixelsToMinutes(top, pixelsPerHour);
+    const dateUnderCursor = columnDates[0].clone().add(Math.floor(left / dayWidth), 'days').add(minutesUnderCursor, 'minutes').toDate();
     const adjustedDateUnderCursor = nearestMinutes(dateUnderCursor, step);
 
     // if the click is in the bound of an element:
@@ -310,7 +357,7 @@ const Calendar = ({
     }
 
     setDragging(true);
-  }, [hoursContainerWidth, dayWidth, maxHour, minHour, pixelsPerHour, currentDate, timeZone, step, events, minEventHeight, topHandleHeight, bottomHandleHeight, defaultEventDurationMinutes]);
+  }, [columnDates, hoursContainerWidth, dayWidth, maxHour, minHour, pixelsPerHour, timeZone, step, events, minEventHeight, topHandleHeight, bottomHandleHeight, defaultEventDurationMinutes]);
 
   const handleMouseUp = useCallback(e => {
     if (e.button !== 0) return;
@@ -353,24 +400,23 @@ const Calendar = ({
   }, [onDelete]);
 
   const renderedDayEventContainer = useMemo(() => {
-    return weekDates(currentDate, timeZone).map(date => {
-      const isToday_ = isToday(date, timeZone);
+    return columnDates.map(date => {
       return (
         <div className='calendar__content__day__event__container'>
           {generateArray(minHour, maxHour).map(hour => (
-            <div key={hour} className={`calendar__content__day__slot ${isToday_ ? 'today' : ''}`}
+            <div key={hour} className={`calendar__content__day__slot${calendarView !== CalendarView.SINGLE_DAY && isToday(date, timeZone) ? ' today' : ''}`}
                  style={{top: hoursToPixels(hour - minHour, pixelsPerHour), height: hoursToPixels(1, pixelsPerHour)}}/>
           ))}
         </div>
       );
     })
-  }, [currentDate, maxHour, minHour, pixelsPerHour, timeZone]);
+  }, [calendarView, columnDates, maxHour, minHour, pixelsPerHour, timeZone]);
 
   const renderedEvents = useMemo(() => {
-    return weekDates(currentDate, timeZone).map(date => {
+    return columnDates.map(date => {
       const startOfDay = moment(date).tz(timeZone).startOf('days');
       return events
-        .filter(event => event) // HACK hot reloader throws an error
+        .filter(event => event) // HACK hot-reloader throws an error
         .filter(event => !event.allDay)
         .filter(event => !dragOriginalEvent || event !== dragOriginalEvent) // do not render event being dragged
         .filter(event => startOfDay.isSame(moment(event.start).tz(timeZone), 'days'))
@@ -385,20 +431,18 @@ const Calendar = ({
           }}
                title={event.summary}
           >
-            <div className='calendar__content__day__event__container'>
-              <div className='calendar__content__day__event__container__top' style={{height: topHandleHeight}}/>
-              <div className='calendar__content__day__event__container__main'>
-                {event.summary}
-              </div>
-              <div className='calendar__content__day__event__container__bottom' style={{height: bottomHandleHeight}}/>
+            <div className='calendar__content__day__event__top' style={{height: topHandleHeight}}/>
+            <div className='calendar__content__day__event__main'>
+              {event.summary}
             </div>
+            <div className='calendar__content__day__event__bottom' style={{height: bottomHandleHeight}}/>
             <div className='calendar__content__day__event__delete' onClick={() => handleDeleteEventClick(event)}>
               ❌
             </div>
           </div>
         ));
     });
-  }, [bottomHandleHeight, currentDate, dragOriginalEvent, events, handleDeleteEventClick, maxHour, minHour, pixelsPerHour, timeZone, topHandleHeight]);
+  }, [bottomHandleHeight, columnDates, dragOriginalEvent, events, handleDeleteEventClick, maxHour, minHour, pixelsPerHour, timeZone, topHandleHeight]);
 
   return (
     <div className={`calendar__container ${className || ""}`} style={style} ref={containerRef}>
@@ -406,19 +450,23 @@ const Calendar = ({
       <div className='calendar__header'>
         <div className='calendar__header__left-spacer'
              style={{width: hoursContainerWidth, minWidth: hoursContainerWidth}}/>
-        {weekDates(currentDate, timeZone).map(date => (
+        {columnDates.map(date => (
           <div key={date} style={{width: dayWidth, minWidth: dayWidth, maxWidth: dayWidth}}>
-            <span style={{textAlign: 'center'}}>{moment(date).tz(timeZone).format('ddd D')} </span>
-            {events
-              .filter(event => event) // HACK hot reloader throws an error
-              .filter(event => event.allDay)
-              .filter(event => moment(date).tz(timeZone).isSame(moment(event.start).tz(timeZone), 'days'))
-              .map((event, index) => (
-                <div key={index} className='calendar__header__event' title={event.summary}>
-                  {event.summary}
-                </div>
-              ))
-            }
+            {calendarType === CalendarType.SPECIFIC ? (<>
+              <span style={{textAlign: 'center'}}>{moment(date).tz(timeZone).format('ddd D')}</span>
+              {events
+                .filter(event => event) // HACK hot reloader throws an error
+                  .filter(event => event.allDay)
+                  .filter(event => moment(date).tz(timeZone).isSame(moment(event.start).tz(timeZone), 'days'))
+                  .map((event, index) => (
+                    <div key={index} className='calendar__header__event' title={event.summary}>
+                      {event.summary}
+                    </div>
+                  ))
+              }
+            </>) : calendarView !== CalendarView.SINGLE_DAY ? (
+              <span style={{textAlign: 'center'}}>{moment(date).tz(timeZone).format('ddd')}</span>
+            ) :  null}
           </div>
         ))}
         <div style={{width: scrollbarWidth, minWidth: scrollbarWidth}}/>
@@ -437,7 +485,7 @@ const Calendar = ({
           ))}
         </div>
 
-        {weekDates(currentDate, timeZone).map((date, index) => {
+        {columnDates.map((date, index) => {
           const isToday_ = isToday(date, timeZone);
 
           return (

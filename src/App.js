@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './App.css'
 import moment from 'moment-timezone';
-import Calendar from './Calendar';
+import Calendar, {CalendarType, CalendarView} from './Calendar';
 
 const App = () => {
 
@@ -68,7 +68,8 @@ const App = () => {
     <div style={{height: "100vh", display: "flex", flexDirection: "column"}}>
       <h1>Some title</h1>
       <Calendar currentDate={currentDate} timeZone={timeZone} events={events} onCreate={handleCreate} onChange={handleChange} onDelete={handleDelete}
-        pixelsPerHour={50} minHour={0} maxHour={24}/>
+        pixelsPerHour={50} minHour={8} maxHour={17} calendarType={CalendarType.GENERIC} calendarView={CalendarView.SINGLE_DAY}
+      />
     </div>
   </>)
 }
