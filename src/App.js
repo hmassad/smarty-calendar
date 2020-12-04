@@ -3,7 +3,7 @@ import './App.css'
 import moment from 'moment-timezone';
 import Calendar from './Calendar';
 
-function App() {
+const App = () => {
 
   const [timeZone] = useState('America/Argentina/Buenos_Aires');
   const [currentDate] = useState(moment().tz(timeZone));
@@ -68,7 +68,7 @@ function App() {
     <div style={{height: "100vh", display: "flex", flexDirection: "column"}}>
       <h1>Some title</h1>
       <Calendar currentDate={currentDate} timeZone={timeZone} events={events} onCreate={handleCreate} onChange={handleChange} onDelete={handleDelete}
-        pixelsPerHour={30} minHour={0} maxHour={24}/>
+        pixelsPerHour={50} minHour={0} maxHour={24}/>
     </div>
   </>)
 }

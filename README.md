@@ -9,14 +9,13 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 ## 🚨 Pending
 
 - edit/confirm event popup
-- drag events from one day to the other
-- minimum event duration
 - look and feel of events (creating, dragging, open popup, normal)
-- do not allow overlapping of events while dragging
 - when minHour and maxHour are not default, dragging doesn't work
 
 ## ✨ Nice to have
 
+- mouse move: shadow with default duration when a user is not dragging but moving the mouse over the calendar
+- support events spanning more than one day, drawing and drag moving
 - single day view, three day view
 - multiline ellipsis for all day events
 - use colors from events
@@ -38,3 +37,6 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 - variable pixel height
 - prevent render of unaffected components on mouse move
 - wrong calculation of time in events, it calculates 4 when it must be 5, must review
+- minimum event duration
+- do not allow overlapping of events while dragging
+- drag events from one day to the other

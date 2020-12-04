@@ -17,3 +17,10 @@ export const nearestFutureMinutes = (date, minutes) => {
     const roundedMinutes = Math.ceil(m.minute() / minutes) * minutes;
     return m.startOf('hours').minute(roundedMinutes).toDate();
 }
+
+export const checkCollision = (start1, end1, start2, end2) => {
+    return start1 && end1 && start2 && end2 && (
+        (start1.getTime() >= start2.getTime() && start1.getTime() < end2.getTime()) ||
+        (end1.getTime() > start2.getTime() && start1.getTime() <= start2.getTime())
+    );
+}
