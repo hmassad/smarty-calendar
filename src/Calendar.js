@@ -153,23 +153,28 @@ const Calendar = ({
   }, [handleResize]);
 
   useEffect(() => {
-    calendarContentRef.current.scrollTop = nowTop;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    const intervalHandle = setInterval(() => {
+    const calcNowTop = () => {
       const now = moment().tz(timeZone);
-      if (now.hours() < minHour) {
-        setNowTop(null);
+      if (now.hours() < minHour || now.hours() > maxHour) {
+        return null;
       } else {
-        setNowTop(calcTop(now.toDate(), timeZone, minHour, pixelsPerHour));
+        return calcTop(now.toDate(), timeZone, minHour, pixelsPerHour);
       }
+    };
+
+    const nowTop = calcNowTop();
+    setNowTop(nowTop);
+    if (nowTop) {
+      calendarContentRef.current.scrollTop = nowTop;
+    }
+
+    const intervalHandle = setInterval(() => {
+      setNowTop(calcNowTop());
     }, 1000);
     return () => {
       clearInterval(intervalHandle);
     };
-  }, [timeZone, minHour, pixelsPerHour]);
+  }, [timeZone, minHour, maxHour, pixelsPerHour]);
 
   const handleMouseMove = useCallback(e => {
     if (!dragContextRef.current) return;
@@ -289,6 +294,7 @@ const Calendar = ({
   const handleMouseDown = useCallback(e => {
     if (e.button !== 0) return;
     if (e.target.onclick) return; // allow clicking on inner elements
+    // TODO filter click outside calendarContentRef
 
     const calendarContentRect = calendarContentRef.current.getBoundingClientRect();
     const left = e.clientX - calendarContentRect.left - hoursContainerWidth;

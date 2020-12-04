@@ -6,7 +6,10 @@ import Calendar, {CalendarType, CalendarView} from './Calendar';
 const App = () => {
 
   const [timeZone] = useState('America/Argentina/Buenos_Aires');
-  const [currentDate] = useState(moment().tz(timeZone));
+  const [currentDate, setCurrentDate] = useState(moment().tz(timeZone));
+
+  const [calendarType, setCalendarType] = useState(CalendarType.SPECIFIC);
+  const [calendarView, setCalendarView] = useState(CalendarView.WORK_WEEK);
 
   const [events, setEvents] = useState(() => {
     const today = moment().tz(timeZone).startOf('days');
@@ -64,11 +67,45 @@ const App = () => {
     })
   }
 
+  const handleCurrentDateChange = (amount, unit) => {
+    setCurrentDate(prev => moment(prev).tz(timeZone).add(amount, unit));
+  }
+
   return (<>
     <div style={{height: "100vh", display: "flex", flexDirection: "column"}}>
-      <h1>Some title</h1>
+      <div style={{display: "flex", alignItems: "baseline", paddingLeft: 12, paddingRight: 12}}>
+        <h1 style={{flex: 1}}>Smarty Calendar</h1>
+        <div style={{marginLeft: 12}}>
+          <label>CalendarType: </label>
+          <select value={calendarType} onChange={e => setCalendarType(e.target.value)}>
+            <option label={CalendarType.SPECIFIC} value={CalendarType.SPECIFIC} />
+            <option label={CalendarType.GENERIC} value={CalendarType.GENERIC} />
+          </select>
+        </div>
+        <div style={{marginLeft: 12}}>
+          <label>CalendarView: </label>
+          <select value={calendarView} onChange={e => setCalendarView(e.target.value)}>
+            <option label={CalendarView.SINGLE_DAY} value={CalendarView.SINGLE_DAY} />
+            <option label={CalendarView.WORK_WEEK} value={CalendarView.WORK_WEEK} />
+            <option label={CalendarView.WEEK} value={CalendarView.WEEK} />
+            <option label={CalendarView.THREE_DAYS} value={CalendarView.THREE_DAYS} />
+          </select>
+        </div>
+        <div style={{marginLeft: 12}}>
+          <label>CurrentDate: </label>
+          <button onClick={() => handleCurrentDateChange(-1, 'years')}>-1 year</button>
+          <button onClick={() => handleCurrentDateChange(-1, 'weeks')}>-1 week</button>
+          <button onClick={() => handleCurrentDateChange(-1, 'days')}>-1 day</button>
+          <span style={{paddingLeft: 6, paddingRight: 6}}>
+            {moment(currentDate).tz(timeZone).format('DD/MM/yyyy')}
+          </span>
+          <button onClick={() => handleCurrentDateChange(1, 'days')}>+1 day</button>
+          <button onClick={() => handleCurrentDateChange(1, 'weeks')}>+1 week</button>
+          <button onClick={() => handleCurrentDateChange(1, 'years')}>+1 year</button>
+        </div>
+      </div>
       <Calendar currentDate={currentDate} timeZone={timeZone} events={events} onCreate={handleCreate} onChange={handleChange} onDelete={handleDelete}
-        pixelsPerHour={50} minHour={8} maxHour={17} calendarType={CalendarType.GENERIC} calendarView={CalendarView.SINGLE_DAY}
+        pixelsPerHour={32} minHour={0} maxHour={24} calendarType={calendarType} calendarView={calendarView}
       />
     </div>
   </>)
