@@ -488,8 +488,9 @@ const Calendar = ({
           width: hoursContainerWidth,
           minWidth: hoursContainerWidth
         }}>
-          {Array.from({length: maxHour - minHour + 1}).map((_, i) => minHour + i).map(hour => (
-            <div key={hour} className='calendar__content__hour' style={{height: hoursToPixels(1)}}>
+          {Array.from({length: maxHour - minHour + 1}).map((_, i) => minHour + i).map((/* number */ hour) => (
+            // 6 is the height of calendar__content__hour last item
+            <div key={hour} className='calendar__content__hour' style={{height: hour < 24 ? hoursToPixels(1) : 6}}>
               {`${moment(currentDate).tz(timeZone).startOf('weeks').add(hour, 'hours').format('ha')}`}
             </div>
           ))}

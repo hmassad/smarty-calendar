@@ -46,10 +46,6 @@
     visibility: hidden;
 }
 
-.calendar__content__hour:last-child {
-    height: 6px;
-}
-
 .calendar__content__day {
     position: relative;
 }
