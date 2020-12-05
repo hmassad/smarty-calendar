@@ -9,11 +9,13 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 ## 🐞 Bugs
 
 - can't drag an event that finishes after maxHour
-- don't let create new slots if they don't fit (mouse down and default duration)
+- don't let creation of new slots if they don't fit (mouse down and default duration)
+- when moving an event past the bottom of the calendar, it moves to the next day (mouse move)
 
 ## 🚨 Pending
 
-- edit/confirm event popup
+- rename events to intervals?
+- differentiate between events and slots: we create, edit and delete slots, events are passed
 - look and feel of events (creating, dragging, open popup, normal)
 - interval creation mode / event creation mode, events and slots don't interact with each other
 
@@ -25,6 +27,7 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 - use colors from events
 - vertical slots of 30 minutes
 - add exclusion zones, like working hours
+- edit/confirm event popup
 
 ## 🚀 Improvement Opportunities
 
@@ -48,3 +51,4 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 - with minHour can't change or move an event
 - single day view, three day view, work week view
 - generic dates, specific dates
+- filter clicks outside calendarContentRef (mouse down)

@@ -4,46 +4,6 @@ import './Calendar.css';
 import {checkCollision, isToday, nearestMinutes} from './dateUtils';
 import {nearestNumber} from './numberUtils';
 
-const generateArray = (start, end) => {
-  return [...Array(end - start)].map((_, i) => start + i);
-}
-
-const minutesToPixels = (minutes, pixelsPerHour) => {
-  return pixelsPerHour * minutes / 60;
-}
-
-const pixelsToMinutes = (pixels, pixelsPerHour) => {
-  return pixels / pixelsPerHour * 60;
-}
-
-const hoursToPixels = (hours, pixelsPerHour) => {
-  return minutesToPixels(hours * 60, pixelsPerHour);
-}
-
-const calcTop = (date, timeZone, minHour, pixelsPerHour) => {
-  const m = moment(date).tz(timeZone);
-  if (m.hours() < minHour) m.hours(minHour);
-  const startOfDay = m.clone().startOf('days').add(minHour, 'hours');
-  const minutes = m.diff(startOfDay, 'minutes');
-  return minutesToPixels(minutes, pixelsPerHour);
-};
-
-const calcHeight = (start, end, timeZone, maxHour, pixelsPerHour) => {
-  const startM = moment(start).tz(timeZone);
-  let endM = moment(end).tz(timeZone);
-  if (!endM.isSame(startM, 'days')) endM = startM.clone().endOf('days');
-  if (endM.hours() > maxHour) endM.hours(maxHour - 1);
-  const minutes = endM.diff(startM, 'minutes');
-  return minutesToPixels(minutes, pixelsPerHour);
-};
-
-const DragAction = {
-  CREATE: 'CREATE',
-  CHANGE_START: 'CHANGE_START',
-  CHANGE_END: 'CHANGE_END',
-  MOVE: 'MOVE',
-};
-
 export const CalendarType = {
   SPECIFIC: 'SPECIFIC',
   GENERIC: 'GENERIC'
@@ -55,6 +15,13 @@ export const CalendarView = {
   SINGLE_DAY: 'SINGLE_DAY',
   THREE_DAYS: 'THREE_DAYS'
 }
+
+const DragAction = {
+  CREATE: 'CREATE',
+  CHANGE_START: 'CHANGE_START',
+  CHANGE_END: 'CHANGE_END',
+  MOVE: 'MOVE',
+};
 
 const GENERIC_DATE = '2020-01-01T00:00:00Z';
 
@@ -137,11 +104,42 @@ const Calendar = ({
   const [dragEvent, setDragEvent] = useState(null);
   const [dragOriginalEvent, setOriginalDragEvent] = useState(null);
 
+  const minutesToPixels = useCallback((minutes) => {
+    return pixelsPerHour * minutes / 60;
+  }, [pixelsPerHour]);
+
+  const pixelsToMinutes = useCallback((pixels) => {
+    return pixels / pixelsPerHour * 60;
+  }, [pixelsPerHour]);
+
+  const hoursToPixels = useCallback((hours) => {
+    return minutesToPixels(hours * 60);
+  }, [minutesToPixels]);
+
+  const calcTop = useCallback((date) => {
+    const m = moment(date).tz(timeZone);
+    if (m.hours() < minHour) m.hours(minHour);
+    const startOfDay = m.clone().startOf('days').add(minHour, 'hours');
+    const minutes = m.diff(startOfDay, 'minutes');
+    return minutesToPixels(minutes);
+  }, [minHour, minutesToPixels, timeZone]);
+
+  const calcHeight = useCallback((start, end) => {
+    const startM = moment(start).tz(timeZone);
+    let endM = moment(end).tz(timeZone);
+    if (!endM.isSame(startM, 'days')) endM = startM.clone().startOf('days').add(1, 'days');
+    if (endM.hours() > maxHour) endM.hours(maxHour - 1);
+    const minutes = endM.diff(startM, 'minutes');
+    return minutesToPixels(minutes);
+  }, [maxHour, minutesToPixels, timeZone]);
+
   const handleResize = useCallback(() => {
     // calculate width of each day column
-    let newDayWidth = (containerRef.current.clientWidth - hoursContainerWidth - scrollbarWidth) / columnDates.length;
-    if (newDayWidth < dayMinWidth) newDayWidth = dayMinWidth;
-    setDayWidth(newDayWidth);
+    // Math.floor(xxx - 1) to prevent round error that make the horizontal scrollbar visible
+    setDayWidth(Math.max(
+      Math.floor((containerRef.current.clientWidth - hoursContainerWidth - scrollbarWidth - 1) / columnDates.length),
+      dayMinWidth
+    ));
   }, [columnDates, dayMinWidth, hoursContainerWidth, scrollbarWidth]);
 
   useEffect(() => {
@@ -158,7 +156,7 @@ const Calendar = ({
       if (now.hours() < minHour || now.hours() > maxHour) {
         return null;
       } else {
-        return calcTop(now.toDate(), timeZone, minHour, pixelsPerHour);
+        return calcTop(now.toDate());
       }
     };
 
@@ -174,7 +172,7 @@ const Calendar = ({
     return () => {
       clearInterval(intervalHandle);
     };
-  }, [timeZone, minHour, maxHour, pixelsPerHour]);
+  }, [timeZone, minHour, maxHour, calcTop]);
 
   const handleMouseMove = useCallback(e => {
     if (!dragContextRef.current) return;
@@ -184,14 +182,14 @@ const Calendar = ({
     const calendarContentRect = calendarContentRef.current.getBoundingClientRect();
     let top = e.clientY - calendarContentRect.top + calendarContentRef.current.scrollTop;
     if (top < 0) top = 0;
-    const maxTop = hoursToPixels(maxHour - minHour, pixelsPerHour);
+    const maxTop = hoursToPixels(maxHour - minHour);
     if (top > maxTop) top = maxTop;
     const left = e.clientX - calendarContentRect.left - hoursContainerWidth;
     if (left < 0 || left > dayWidth * columnDates.length) {
       return;
     }
 
-    const minutesUnderCursor = nearestNumber(minHour * 60 + pixelsToMinutes(top, pixelsPerHour), step);
+    const minutesUnderCursor = nearestNumber(minHour * 60 + pixelsToMinutes(top), step);
     const dateUnderCursor = columnDates[0].clone().add(Math.floor(left / dayWidth), 'days').add(minutesUnderCursor, 'minutes');
 
     // eslint-disable-next-line default-case
@@ -289,22 +287,28 @@ const Calendar = ({
         });
         break;
     }
-  }, [columnDates, dayWidth, dragOriginalEvent, events, hoursContainerWidth, isDragging, maxHour, minEventDurationMinutes, minHour, pixelsPerHour, step, timeZone]);
+  }, [columnDates, dayWidth, dragOriginalEvent, events, hoursContainerWidth, hoursToPixels, isDragging, maxHour, minEventDurationMinutes, minHour, pixelsToMinutes, step, timeZone]);
 
   const handleMouseDown = useCallback(e => {
     if (e.button !== 0) return;
     if (e.target.onclick) return; // allow clicking on inner elements
-    // TODO filter click outside calendarContentRef
 
     const calendarContentRect = calendarContentRef.current.getBoundingClientRect();
     const left = e.clientX - calendarContentRect.left - hoursContainerWidth;
+    // discard clicks outside calendarContentRef
+    if (e.clientX < calendarContentRect.left ||
+      e.clientX > calendarContentRect.right ||
+      e.clientY < calendarContentRect.top ||
+      e.clientY > calendarContentRect.bottom) {
+      return;
+    }
     let top = e.clientY - calendarContentRect.top + calendarContentRef.current.scrollTop;
     // discard if outside of calendarContentRect
-    if (left < 0 || left > dayWidth * columnDates.length || top < 0 || top > (maxHour - minHour) * pixelsPerHour) {
+    if (left < 0 || left > dayWidth * columnDates.length || top < 0 || top > hoursToPixels(maxHour - minHour)) {
       return;
     }
 
-    const minutesUnderCursor = minHour * 60 + pixelsToMinutes(top, pixelsPerHour);
+    const minutesUnderCursor = minHour * 60 + pixelsToMinutes(top);
     const dateUnderCursor = columnDates[0].clone().add(Math.floor(left / dayWidth), 'days').add(minutesUnderCursor, 'minutes').toDate();
     const adjustedDateUnderCursor = nearestMinutes(dateUnderCursor, step);
 
@@ -319,13 +323,13 @@ const Calendar = ({
       event.start.getTime() <= dateUnderCursor.getTime() &&
       event.end.getTime() >= dateUnderCursor.getTime());
     if (eventUnderCursor) {
-      const eventTop = calcTop(eventUnderCursor.start, timeZone, minHour, pixelsPerHour);
+      const eventTop = calcTop(eventUnderCursor.start);
       const eventBottom = moment(eventUnderCursor.end).tz(timeZone).isSame(moment(eventUnderCursor.start).tz(timeZone), 'days') ?
-        calcTop(eventUnderCursor.end, timeZone, minHour, pixelsPerHour) :
-        hoursToPixels(maxHour - minHour, pixelsPerHour);
+        calcTop(eventUnderCursor.end) :
+        hoursToPixels(maxHour - minHour);
       let action;
       if (eventBottom - eventTop < minEventHeight) {
-        if ((maxHour - minHour) * pixelsPerHour - eventBottom < minEventHeight) {
+        if (hoursToPixels(maxHour - minHour) - eventBottom < minEventHeight) {
           action = DragAction.CHANGE_START;
         } else {
           action = DragAction.CHANGE_END;
@@ -344,7 +348,7 @@ const Calendar = ({
       dragContextRef.current = {
         action,
         date: adjustedDateUnderCursor,
-        offset: nearestNumber(pixelsToMinutes(action === DragAction.CHANGE_END ? top - eventBottom : top - eventTop, pixelsPerHour), step)
+        offset: nearestNumber(pixelsToMinutes(action === DragAction.CHANGE_END ? top - eventBottom : top - eventTop), step)
       };
       setDragEvent({
         ...eventUnderCursor
@@ -363,7 +367,7 @@ const Calendar = ({
     }
 
     setDragging(true);
-  }, [columnDates, hoursContainerWidth, dayWidth, maxHour, minHour, pixelsPerHour, timeZone, step, events, minEventHeight, topHandleHeight, bottomHandleHeight, defaultEventDurationMinutes]);
+  }, [hoursContainerWidth, dayWidth, columnDates, maxHour, minHour, pixelsToMinutes, step, events, calcTop, timeZone, hoursToPixels, minEventHeight, topHandleHeight, bottomHandleHeight, defaultEventDurationMinutes]);
 
   const handleMouseUp = useCallback(e => {
     if (e.button !== 0) return;
@@ -409,14 +413,14 @@ const Calendar = ({
     return columnDates.map(date => {
       return (
         <div className='calendar__content__day__event__container'>
-          {generateArray(minHour, maxHour).map(hour => (
+          {Array.from({length: maxHour - minHour}).map((_, i) => minHour + i).map(hour => (
             <div key={hour} className={`calendar__content__day__slot${calendarView !== CalendarView.SINGLE_DAY && isToday(date, timeZone) ? ' today' : ''}`}
-                 style={{top: hoursToPixels(hour - minHour, pixelsPerHour), height: hoursToPixels(1, pixelsPerHour)}}/>
+                 style={{top: hoursToPixels(hour - minHour), height: hoursToPixels(1)}}/>
           ))}
         </div>
       );
     })
-  }, [calendarView, columnDates, maxHour, minHour, pixelsPerHour, timeZone]);
+  }, [calendarView, columnDates, hoursToPixels, maxHour, minHour, timeZone]);
 
   const renderedEvents = useMemo(() => {
     return columnDates.map(date => {
@@ -432,8 +436,8 @@ const Calendar = ({
           moment(event.start).tz(timeZone).hours() <= maxHour)
         .map((event, index) => (
           <div key={index} className='calendar__content__day__event' style={{
-            top: calcTop(event.start, timeZone, minHour, pixelsPerHour),
-            height: calcHeight(event.start, event.end, timeZone, maxHour, pixelsPerHour)
+            top: calcTop(event.start, timeZone, minHour),
+            height: calcHeight(event.start, event.end)
           }}
                title={event.summary}
           >
@@ -448,7 +452,7 @@ const Calendar = ({
           </div>
         ));
     });
-  }, [bottomHandleHeight, columnDates, dragOriginalEvent, events, handleDeleteEventClick, maxHour, minHour, pixelsPerHour, timeZone, topHandleHeight]);
+  }, [bottomHandleHeight, calcHeight, calcTop, columnDates, dragOriginalEvent, events, handleDeleteEventClick, maxHour, minHour, timeZone, topHandleHeight]);
 
   return (
     <div className={`calendar__container ${className || ""}`} style={style} ref={containerRef}>
@@ -480,12 +484,12 @@ const Calendar = ({
 
       <div className='calendar__content' ref={calendarContentRef}>
         <div className='calendar__content__hours__container' style={{
-          height: hoursToPixels(maxHour - minHour, pixelsPerHour),
+          height: hoursToPixels(maxHour - minHour),
           width: hoursContainerWidth,
           minWidth: hoursContainerWidth
         }}>
-          {generateArray(minHour, maxHour + 1).map((hour) => (
-            <div key={hour} className='calendar__content__hour' style={{height: hoursToPixels(1, pixelsPerHour)}}>
+          {Array.from({length: maxHour - minHour + 1}).map((_, i) => minHour + i).map(hour => (
+            <div key={hour} className='calendar__content__hour' style={{height: hoursToPixels(1)}}>
               {`${moment(currentDate).tz(timeZone).startOf('weeks').add(hour, 'hours').format('ha')}`}
             </div>
           ))}
@@ -500,7 +504,7 @@ const Calendar = ({
                    width: dayWidth,
                    minWidth: dayWidth,
                    maxWidth: dayWidth,
-                   height: hoursToPixels(maxHour - minHour, pixelsPerHour)
+                   height: hoursToPixels(maxHour - minHour)
                  }}>
 
               {renderedDayEventContainer[index]}
@@ -509,8 +513,8 @@ const Calendar = ({
                 {renderedEvents[index]}
                 {dragEvent && moment(dragEvent.start).tz(timeZone).isSame(moment(date).tz(timeZone), 'days') ? (
                   <div className='calendar__content__day__drag-create-event' style={{
-                    top: calcTop(dragEvent.start, timeZone, minHour, pixelsPerHour),
-                    height: calcHeight(dragEvent.start, dragEvent.end, timeZone, maxHour, pixelsPerHour)
+                    top: calcTop(dragEvent.start),
+                    height: calcHeight(dragEvent.start, dragEvent.end)
                   }}>
                     {moment(dragEvent.start).tz(timeZone).format('h:mma')} - {moment(dragEvent.end).tz(timeZone).format('h:mma')}<br/>
                     {dragEvent.summary}

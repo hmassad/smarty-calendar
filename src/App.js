@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import './App.css'
 import moment from 'moment-timezone';
 import Calendar, {CalendarType, CalendarView} from './Calendar';
@@ -9,7 +9,7 @@ const App = () => {
   const [currentDate, setCurrentDate] = useState(moment().tz(timeZone));
 
   const [calendarType, setCalendarType] = useState(CalendarType.SPECIFIC);
-  const [calendarView, setCalendarView] = useState(CalendarView.WORK_WEEK);
+  const [calendarView, setCalendarView] = useState(CalendarView.WEEK);
 
   const [events, setEvents] = useState(() => {
     const today = moment().tz(timeZone).startOf('days');
@@ -67,48 +67,52 @@ const App = () => {
     })
   }
 
-  const handleCurrentDateChange = (amount, unit) => {
+  const changeDate = (amount, unit) => {
     setCurrentDate(prev => moment(prev).tz(timeZone).add(amount, unit));
   }
 
-  return (<>
+  return (
     <div style={{height: "100vh", display: "flex", flexDirection: "column"}}>
-      <div style={{display: "flex", alignItems: "baseline", paddingLeft: 12, paddingRight: 12}}>
+      <div style={{display: "flex", flexWrap: "wrap", alignItems: "baseline", paddingLeft: 12, paddingRight: 12}}>
         <h1 style={{flex: 1}}>Smarty Calendar</h1>
         <div style={{marginLeft: 12}}>
           <label>CalendarType: </label>
           <select value={calendarType} onChange={e => setCalendarType(e.target.value)}>
-            <option label={CalendarType.SPECIFIC} value={CalendarType.SPECIFIC} />
-            <option label={CalendarType.GENERIC} value={CalendarType.GENERIC} />
+            <option label={CalendarType.SPECIFIC} value={CalendarType.SPECIFIC}/>
+            <option label={CalendarType.GENERIC} value={CalendarType.GENERIC}/>
           </select>
         </div>
         <div style={{marginLeft: 12}}>
           <label>CalendarView: </label>
           <select value={calendarView} onChange={e => setCalendarView(e.target.value)}>
-            <option label={CalendarView.SINGLE_DAY} value={CalendarView.SINGLE_DAY} />
-            <option label={CalendarView.WORK_WEEK} value={CalendarView.WORK_WEEK} />
-            <option label={CalendarView.WEEK} value={CalendarView.WEEK} />
-            <option label={CalendarView.THREE_DAYS} value={CalendarView.THREE_DAYS} />
+            <option label={CalendarView.SINGLE_DAY} value={CalendarView.SINGLE_DAY}/>
+            <option label={CalendarView.WORK_WEEK} value={CalendarView.WORK_WEEK}/>
+            <option label={CalendarView.WEEK} value={CalendarView.WEEK}/>
+            <option label={CalendarView.THREE_DAYS} value={CalendarView.THREE_DAYS}/>
           </select>
         </div>
         <div style={{marginLeft: 12}}>
           <label>CurrentDate: </label>
-          <button onClick={() => handleCurrentDateChange(-1, 'years')}>-1 year</button>
-          <button onClick={() => handleCurrentDateChange(-1, 'weeks')}>-1 week</button>
-          <button onClick={() => handleCurrentDateChange(-1, 'days')}>-1 day</button>
+          <button onClick={() => changeDate(-1, 'years')}>-1 year</button>
+          <button onClick={() => changeDate(-1, 'weeks')}>-1 week</button>
+          <button onClick={() => changeDate(-1, 'days')}>-1 day</button>
           <span style={{paddingLeft: 6, paddingRight: 6}}>
             {moment(currentDate).tz(timeZone).format('DD/MM/yyyy')}
           </span>
-          <button onClick={() => handleCurrentDateChange(1, 'days')}>+1 day</button>
-          <button onClick={() => handleCurrentDateChange(1, 'weeks')}>+1 week</button>
-          <button onClick={() => handleCurrentDateChange(1, 'years')}>+1 year</button>
+          <button onClick={() => changeDate(1, 'days')}>+1 day</button>
+          <button onClick={() => changeDate(1, 'weeks')}>+1 week</button>
+          <button onClick={() => changeDate(1, 'years')}>+1 year</button>
         </div>
       </div>
-      <Calendar currentDate={currentDate} timeZone={timeZone} events={events} onCreate={handleCreate} onChange={handleChange} onDelete={handleDelete}
-        pixelsPerHour={32} minHour={0} maxHour={24} calendarType={calendarType} calendarView={calendarView}
+      <Calendar
+        calendarType={calendarType} calendarView={calendarView}
+        currentDate={currentDate} timeZone={timeZone} events={events}
+        onCreate={handleCreate} onChange={handleChange} onDelete={handleDelete}
+        pixelsPerHour={100} minHour={0} maxHour={24}
       />
+      <div>footer</div>
     </div>
-  </>)
+  )
 }
 
 export default App;
