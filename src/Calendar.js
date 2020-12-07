@@ -690,7 +690,7 @@ const Calendar = ({
           moment(event.start).tz(timeZone).hours() <= maxHour)
         .map((event, index) => (
           <div key={index} className='calendar__content__day__event' style={{
-            top: calcTop(event.start, timeZone, minHour),
+            top: calcTop(event.start),
             height: calcHeight(event.start, event.end),
             pointerEvents: editionMode !== EditionMode.EVENTS ? "none" : "auto"
           }} title={event.summary}
@@ -715,7 +715,7 @@ const Calendar = ({
           </div>
         ));
     });
-  }, [bottomHandleHeight, calcHeight, calcTop, calendarType, editionMode, columnDates, dragOriginalEvent, events, handleDeleteEventClick, maxHour, minHour, timeZone, topHandleHeight]);
+  }, [bottomHandleHeight, calcHeight, calcTop, calendarType, editionMode, columnDates, dragOriginalEvent, events, handleDeleteEventClick, maxHour, timeZone, topHandleHeight]);
 
   const renderedSlots = useMemo(() => {
     switch (calendarType) {
@@ -731,7 +731,7 @@ const Calendar = ({
             .filter(slot => startOfDay.clone().add(slot.startMinutes, 'minutes').hours() <= maxHour)
             .map((slot, index) => (
               <div key={index} className='calendar__content__day__slot' style={{
-                top: calcTop(startOfDay.clone().add(slot.startMinutes, 'minutes'), timeZone, minHour),
+                top: calcTop(startOfDay.clone().add(slot.startMinutes, 'minutes')),
                 height: calcHeight(startOfDay.clone().add(slot.startMinutes, 'minutes'), startOfDay.clone().add(slot.endMinutes, 'minutes')),
                 pointerEvents: editionMode !== EditionMode.SLOTS ? "none" : "auto"
               }}>
@@ -768,7 +768,7 @@ const Calendar = ({
               moment(slot.start).tz(timeZone).hours() <= maxHour)
             .map((slot, index) => (
               <div key={index} className='calendar__content__day__slot' style={{
-                top: calcTop(slot.start, timeZone, minHour),
+                top: calcTop(slot.start),
                 height: calcHeight(slot.start, slot.end),
                 pointerEvents: editionMode !== EditionMode.SLOTS ? "none" : "auto"
               }}>
@@ -791,7 +791,7 @@ const Calendar = ({
             ));
         });
     }
-  }, [bottomHandleHeight, calcHeight, calcTop, calendarType, columnDates, dragOriginalEvent, editionMode, handleDeleteSlotClick, handleDeleteWeeklyRecurringSlotClick, maxHour, minHour, slots, timeZone, topHandleHeight, weeklyRecurringSlots]);
+  }, [bottomHandleHeight, calcHeight, calcTop, calendarType, columnDates, dragOriginalEvent, editionMode, handleDeleteSlotClick, handleDeleteWeeklyRecurringSlotClick, maxHour, slots, timeZone, topHandleHeight, weeklyRecurringSlots]);
 
   return (
     <div className={`calendar__container ${className || ""}`} style={style} ref={containerRef}>

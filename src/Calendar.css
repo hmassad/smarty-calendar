@@ -51,6 +51,7 @@
 }
 
 .calendar__content__day__grid {
+    pointer-events: none;
     position: absolute;
     width: 100%;
     border-bottom: 1px solid #DDDDDD;
