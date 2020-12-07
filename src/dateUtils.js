@@ -51,4 +51,10 @@ export const checkCollision = (start1, end1, start2, end2) => {
     );
 }
 
-export const isToday = (date, timeZone) => moment().tz(timeZone).isSame(moment(date).tz(timeZone), 'days');
+export const isToday = (date, timeZone) => {
+    return moment().tz(timeZone).isSame(moment(date).tz(timeZone), 'days');
+}
+
+export const isSameDay = (date1, date2, timeZone) => {
+    return moment(date1).tz(timeZone).isSame(moment(date2).tz(timeZone), 'days');
+}

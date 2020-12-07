@@ -9,15 +9,11 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 ## 🐞 Bugs
 
 - can't drag an event that finishes after maxHour
-- don't let creation of new slots if they don't fit (mouse down and default duration)
-- when moving an event past the bottom of the calendar, it moves to the next day (mouse move)
+- title not shown when pointer-events: none
 
 ## 🚨 Pending
 
-- rename events to intervals?
-- differentiate between events and slots: we create, edit and delete slots, events are passed
 - look and feel of events (creating, dragging, open popup, normal)
-- interval creation mode / event creation mode, events and slots don't interact with each other
 
 ## ✨ Nice to have
 
@@ -26,13 +22,13 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 - multiline ellipsis for all day events
 - use colors from events
 - vertical slots of 30 minutes
-- add exclusion zones, like working hours
 - edit/confirm event popup
+- improve how overlapped events are shown
+- add exclusion zones, like working hours, where you can only drag inside those boxes
 
 ## 🚀 Improvement Opportunities
 
-- 4 initial renders, should be 2
-- double render on every time update
+- replace useCallback's for one useReducer to prevent some double renders
 
 ## ✅ Done
 
@@ -52,3 +48,7 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 - single day view, three day view, work week view
 - generic dates, specific dates
 - filter clicks outside calendarContentRef (mouse down)
+- differentiate between events and slots: we create, edit and delete slots, events are passed
+- interval creation mode / event creation mode, events and slots don't interact with each other
+- don't let creation of new slots if they don't fit (mouse down and default duration)
+- when moving an event past the bottom of the calendar, it moves to the next day (mouse move)

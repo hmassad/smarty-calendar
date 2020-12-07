@@ -1,15 +1,16 @@
 import React, {useState} from 'react';
 import './App.css'
 import moment from 'moment-timezone';
-import Calendar, {CalendarType, CalendarView} from './Calendar';
+import Calendar, {CalendarType, CalendarView, EditionMode} from './Calendar';
 
 const App = () => {
 
   const [timeZone] = useState('America/Argentina/Buenos_Aires');
   const [currentDate, setCurrentDate] = useState(moment().tz(timeZone));
 
-  const [calendarType, setCalendarType] = useState(CalendarType.SPECIFIC);
+  const [calendarType, setCalendarType] = useState(CalendarType.GENERIC);
   const [calendarView, setCalendarView] = useState(CalendarView.WEEK);
+  const [editionMode, setEditionMode] = useState(EditionMode.SLOTS);
 
   const [events, setEvents] = useState(() => {
     const today = moment().tz(timeZone).startOf('days');
@@ -49,11 +50,37 @@ const App = () => {
     ];
   });
 
-  const handleCreate = event => {
+  const [slots, setSlots] = useState(() => {
+    const today = moment().tz(timeZone).startOf('days');
+    return [
+      {
+        start: today.clone().add(10, 'hours').toDate(),
+        end: today.clone().add(13, 'hours').toDate(),
+        summary: 'slot 10:30am to 12pm'
+      },
+    ];
+  });
+
+  const [weeklyRecurringSlots, setWeeklyRecurringSlots] = useState(() => {
+    return [
+      {
+        dayOfWeek: 2,
+        startMinutes: 9.1 * 60,
+        endMinutes: 23.3 * 60,
+      },
+      {
+        dayOfWeek: 3,
+        startMinutes: 9 * 60,
+        endMinutes: 13 * 60,
+      },
+    ];
+  });
+
+  const handleCreateEvent = event => {
     setEvents(prev => [...prev, event]);
   };
 
-  const handleChange = (originalEvent, newEvent) => {
+  const handleChangeEvent = (originalEvent, newEvent) => {
     setEvents(prev => {
       const newEvents = prev.filter(event => event !== originalEvent);
       newEvents.push({...originalEvent, ...newEvent});
@@ -61,8 +88,44 @@ const App = () => {
     })
   }
 
-  const handleDelete = (event) => {
+  const handleDeleteEvent = (event) => {
     setEvents(prev => {
+      return prev.filter(event1 => event !== event1);
+    })
+  }
+
+  const handleCreateSlot = event => {
+    setSlots(prev => [...prev, event]);
+  };
+
+  const handleChangeSlot = (originalEvent, newEvent) => {
+    setSlots(prev => {
+      const arr = prev.filter(event => event !== originalEvent);
+      arr.push({...originalEvent, ...newEvent});
+      return arr;
+    })
+  }
+
+  const handleDeleteSlot = (deletedSlot) => {
+    setSlots(prev => {
+      return prev.filter(event1 => deletedSlot !== event1);
+    })
+  }
+
+  const handleCreateWeeklyRecurringSlot = event => {
+    setWeeklyRecurringSlots(prev => [...prev, event]);
+  };
+
+  const handleChangeWeeklyRecurringSlot = (originalEvent, newEvent) => {
+    setWeeklyRecurringSlots(prev => {
+      const arr = prev.filter(item => item !== originalEvent);
+      arr.push({...originalEvent, ...newEvent});
+      return arr;
+    })
+  }
+
+  const handleDeleteWeeklyRecurringSlot = (event) => {
+    setWeeklyRecurringSlots(prev => {
       return prev.filter(event1 => event !== event1);
     })
   }
@@ -92,6 +155,14 @@ const App = () => {
           </select>
         </div>
         <div style={{marginLeft: 12}}>
+          <label>EditionMode: </label>
+          <select value={editionMode} onChange={e => setEditionMode(e.target.value)}>
+            <option label={EditionMode.NONE} value={EditionMode.NONE}/>
+            <option label={EditionMode.SLOTS} value={EditionMode.SLOTS}/>
+            <option label={EditionMode.EVENTS} value={EditionMode.EVENTS}/>
+          </select>
+        </div>
+        <div style={{marginLeft: 12}}>
           <label>CurrentDate: </label>
           <button onClick={() => changeDate(-1, 'years')}>-1 year</button>
           <button onClick={() => changeDate(-1, 'weeks')}>-1 week</button>
@@ -106,8 +177,14 @@ const App = () => {
       </div>
       <Calendar
         calendarType={calendarType} calendarView={calendarView}
-        currentDate={currentDate} timeZone={timeZone} events={events}
-        onCreate={handleCreate} onChange={handleChange} onDelete={handleDelete}
+        currentDate={currentDate} timeZone={timeZone}
+        editionMode={editionMode}
+        events={events} slots={slots} weeklyRecurringSlots={weeklyRecurringSlots}
+        onCreateEvent={handleCreateEvent} onChangeEvent={handleChangeEvent} onDeleteEvent={handleDeleteEvent}
+        onCreateSlot={handleCreateSlot} onChangeSlot={handleChangeSlot} onDeleteSlot={handleDeleteSlot}
+        onCreateWeeklyRecurringSlot={handleCreateWeeklyRecurringSlot}
+        onChangeWeeklyRecurringSlot={handleChangeWeeklyRecurringSlot}
+        onDeleteWeeklyRecurringSlot={handleDeleteWeeklyRecurringSlot}
         pixelsPerHour={100} minHour={0} maxHour={24}
       />
       <div>footer</div>

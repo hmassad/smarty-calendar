@@ -50,7 +50,7 @@
     position: relative;
 }
 
-.calendar__content__day__slot {
+.calendar__content__day__grid {
     position: absolute;
     width: 100%;
     border-bottom: 1px solid #DDDDDD;
@@ -59,11 +59,11 @@
     z-index: 0;
 }
 
-.calendar__content__day__slot:first-child {
+.calendar__content__day__grid:first-child {
     border-top: 1px solid #DDDDDD;
 }
 
-.calendar__content__day__slot.today {
+.calendar__content__day__grid.today {
     background-color: #bfcde0;
 }
 
@@ -74,64 +74,61 @@
     border-radius: 4px;
 }
 
-.calendar__content__day__event {
+.calendar__content__day__event, .calendar__content__day__slot {
     position: absolute;
     z-index: 1;
-    width: 100%;
+    left: 0;
+    right: 0;
     font-size: 12px;
-    background-color: rgb(159, 225, 231); /* read from events */
-    color: #05283A; /* read from events */
-
     border-radius: 4px;
-    border-left: 4px solid rgb(127, 180, 185); /* read from events */
-
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-
     display: flex;
     flex-direction: column;
 }
 
-.calendar__content__day__event__top {
-    cursor: n-resize;
+.calendar__content__day__event {
+    z-index: 2;
+    background-color: rgb(159, 225, 231); /* read from events */
+    color: #05283A; /* read from events */
+    border-left: 4px solid rgb(127, 180, 185); /* read from events */
+    right: 5px;
 }
 
-.calendar__content__day__event__main {
-    cursor: move;
-    flex: 1;
-}
-
-.calendar__content__day__event__bottom {
-    cursor: s-resize;
-}
-
-.calendar__content__day__event__delete {
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 1000;
-    cursor: pointer;
-}
-
-.calendar__content__day__drag-create-event {
+.calendar__content__day__event__dragging, .calendar__content__day__slot__dragging {
     position: absolute;
     z-index: 500;
-    width: 100%;
     font-size: 12px;
-    background-color: #CC2936;
-    color: white;
-
     border-radius: 4px;
-
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-
     cursor: default;
+    opacity: 75%;
+    left: 0;
+}
+
+.calendar__content__day__slot {
+    background-color: #FF00813F; /* read from events */
+    color: white; /* read from events */
+    border-left: 4px solid #FF00813F; /* read from events */
+}
+
+.calendar__content__day__event__dragging {
+    right: 5px;
+    background-color: #CC2936;
+    color: white;
+}
+
+.calendar__content__day__slot__dragging {
+    right: 0;
+    background-color: #05283A;
+    color: white;
 }
 
 .calendar__content__day__current-time {
+    pointer-events: none;
     width: 100%;
     height: 2px;
     background-color: #FF0081;
@@ -141,6 +138,7 @@
 }
 
 .calendar__content__day__current-time:before {
+    pointer-events: none;
     content: '';
     position: absolute;
     top: 50%;

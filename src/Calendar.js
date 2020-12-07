@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import moment from 'moment-timezone';
 import './Calendar.css';
-import {checkCollision, isToday, nearestMinutes} from './dateUtils';
+import {checkCollision, isSameDay, isToday, nearestMinutes} from './dateUtils';
 import {nearestNumber} from './numberUtils';
 
 export const CalendarType = {
@@ -16,6 +16,12 @@ export const CalendarView = {
   THREE_DAYS: 'THREE_DAYS'
 }
 
+export const EditionMode = {
+  NONE: 'NONE',
+  EVENTS: 'EVENTS',
+  SLOTS: 'SLOTS'
+};
+
 const DragAction = {
   CREATE: 'CREATE',
   CHANGE_START: 'CHANGE_START',
@@ -28,24 +34,39 @@ const GENERIC_DATE = '2020-01-01T00:00:00Z';
 const Calendar = ({
                     calendarType = CalendarType.SPECIFIC,
                     calendarView = CalendarView.WEEK,
+                    editionMode = EditionMode.NONE,
                     currentDate,
                     timeZone,
+
+                    /* {[{start: Date, end: Date, summary: string, backgroundColor: string, borderColor: string, foregroundColor: string}]} */
+                    events,
+                    onCreateEvent,
+                    onChangeEvent,
+                    onDeleteEvent,
+                    defaultEventDurationMinutes = 30,
+
+                    /* {[{start: Date, end: Date}]} */
+                    slots,
+                    onCreateSlot,
+                    onChangeSlot,
+                    onDeleteSlot,
+                    /* {[{dayOfWeek: number, startMinutes: number, endMinutes: number}]} */
+                    weeklyRecurringSlots,
+                    onCreateWeeklyRecurringSlot,
+                    onChangeWeeklyRecurringSlot,
+                    onDeleteWeeklyRecurringSlot,
+
                     minHour = 0,
                     maxHour = 24,
                     pixelsPerHour = 48,
-                    events,
-                    onCreate,
-                    onChange,
-                    onDelete,
                     step = 15,
-                    minEventDurationMinutes = 30,
+                    minEventDurationMinutes = 15,
                     minEventHeight = 10,
                     scrollbarWidth = 22,
                     dayMinWidth = 60,
                     topHandleHeight = 10,
                     bottomHandleHeight = 10,
                     hoursContainerWidth = 40,
-                    defaultEventDurationMinutes = 30,
                     className,
                     style
                   }) => {
@@ -101,6 +122,7 @@ const Calendar = ({
    * @type {React.MutableRefObject<{action: (string|DragAction), date: Date, offset: (number|undefined)} | undefined | null>}
    */
   const dragContextRef = useRef(null);
+
   const [dragEvent, setDragEvent] = useState(null);
   const [dragOriginalEvent, setOriginalDragEvent] = useState(null);
 
@@ -174,10 +196,50 @@ const Calendar = ({
     };
   }, [timeZone, minHour, maxHour, calcTop]);
 
+  /**
+   * returns true if there's a collision
+   * @type {function(*=, *=): (boolean)}
+   */
+  const checkCollisionLocal = useCallback((newStart, newEnd) => {
+    if (!isSameDay(newStart, newEnd, timeZone) && moment(newEnd).tz(timeZone).diff(moment(newEnd).tz(timeZone).startOf('days'), 'minutes') > 0)
+      return true;
+
+    // eslint-disable-next-line default-case
+    switch (editionMode) {
+      case EditionMode.EVENTS:
+        return events.filter(event => event !== dragOriginalEvent).some(event => checkCollision(event.start, event.end, newStart, newEnd));
+      case EditionMode.SLOTS:
+        // eslint-disable-next-line default-case
+        switch(calendarType) {
+          case CalendarType.SPECIFIC:
+            return slots
+              .filter(slot => slot !== dragOriginalEvent)
+              .some(slot => checkCollision(slot.start, slot.end, newStart, newEnd));
+          case CalendarType.GENERIC:
+            return weeklyRecurringSlots
+              .filter(slot => slot !== dragOriginalEvent)
+              .some(slot => {
+                const startOfDay = moment(GENERIC_DATE).tz(timeZone).startOf('weeks').add(slot.dayOfWeek, 'days');
+                return checkCollision(
+                  startOfDay.clone().add(slot.startMinutes, 'minutes').toDate(),
+                  startOfDay.clone().add(slot.endMinutes, 'minutes').toDate(),
+                  newStart, newEnd)
+              });
+        }
+    }
+    return false;
+  }, [calendarType, dragOriginalEvent, editionMode, events, slots, timeZone, weeklyRecurringSlots]);
+
   const handleMouseMove = useCallback(e => {
     if (!dragContextRef.current) return;
     if (!isDragging) return;
-    // TODO cancel drag on secondary button click
+    if (e.button !== 0) {
+      setDragging(false);
+      setDragEvent(null);
+      setOriginalDragEvent(null);
+      dragContextRef.current = null;
+      return;
+    }
 
     const calendarContentRect = calendarContentRef.current.getBoundingClientRect();
     let top = e.clientY - calendarContentRect.top + calendarContentRef.current.scrollTop;
@@ -206,7 +268,7 @@ const Calendar = ({
           if (moment(newEnd).diff(newStart, 'minutes') < minEventDurationMinutes) {
             return prev;
           }
-          if (events.some(event => checkCollision(event.start, event.end, newStart, newEnd))) {
+          if (checkCollisionLocal(newStart, newEnd)) {
             return prev;
           }
           return {
@@ -220,6 +282,9 @@ const Calendar = ({
       case DragAction.MOVE:
         setDragEvent(prev => {
           const eventDay = moment(dateUnderCursor).tz(timeZone).startOf('days');
+          if (minutesUnderCursor >= 1440) { // prevent moving to the next day when at the bottom
+            eventDay.subtract(1, 'days');
+          }
           const durationMinutes = moment(prev.end).diff(moment(prev.start), 'minutes');
           const minStart = eventDay.clone().add(minHour, 'hours');
           const maxStart = eventDay.clone().add(maxHour, 'hours').subtract(durationMinutes, 'minutes');
@@ -230,7 +295,7 @@ const Calendar = ({
             newStart = maxStart;
           }
           let newEnd = moment(newStart).add(durationMinutes, 'minutes');
-          if (events.filter(event => event !== dragOriginalEvent).some(event => checkCollision(event.start, event.end, newStart.toDate(), newEnd.toDate()))) {
+          if (checkCollisionLocal(newStart.toDate(), newEnd.toDate())) {
             return prev;
           }
           return {
@@ -254,7 +319,7 @@ const Calendar = ({
           if (moment(prev.end).diff(newStart, 'minutes') < minEventDurationMinutes) {
             return prev;
           }
-          if (events.filter(event => event !== dragOriginalEvent).some(event => checkCollision(event.start, event.end, newStart.toDate(), prev.end))) {
+          if (checkCollisionLocal(newStart.toDate(), prev.end)) {
             return prev;
           }
           return {
@@ -277,7 +342,7 @@ const Calendar = ({
           if (moment(newEnd).diff(prev.start, 'minutes') < minEventDurationMinutes) {
             return prev;
           }
-          if (events.filter(event => event !== dragOriginalEvent).some(event => checkCollision(event.start, event.end, prev.start, newEnd.toDate()))) {
+          if (checkCollisionLocal(prev.start, newEnd.toDate())) {
             return prev;
           }
           return {
@@ -287,10 +352,17 @@ const Calendar = ({
         });
         break;
     }
-  }, [columnDates, dayWidth, dragOriginalEvent, events, hoursContainerWidth, hoursToPixels, isDragging, maxHour, minEventDurationMinutes, minHour, pixelsToMinutes, step, timeZone]);
+  }, [checkCollisionLocal, columnDates, dayWidth, hoursContainerWidth, hoursToPixels, isDragging, maxHour, minEventDurationMinutes, minHour, pixelsToMinutes, step, timeZone]);
 
   const handleMouseDown = useCallback(e => {
-    if (e.button !== 0) return;
+    if ([EditionMode.EVENTS, EditionMode.SLOTS].indexOf(editionMode) < 0) return;
+    if (e.button !== 0) {
+      setDragging(false);
+      setDragEvent(null);
+      setOriginalDragEvent(null);
+      dragContextRef.current = null;
+      return;
+    }
     if (e.target.onclick) return; // allow clicking on inner elements
 
     const calendarContentRect = calendarContentRef.current.getBoundingClientRect();
@@ -312,86 +384,244 @@ const Calendar = ({
     const dateUnderCursor = columnDates[0].clone().add(Math.floor(left / dayWidth), 'days').add(minutesUnderCursor, 'minutes').toDate();
     const adjustedDateUnderCursor = nearestMinutes(dateUnderCursor, step);
 
-    // if the click is in the bound of an element:
-    //    click on top, action: CHANGE_START
-    //    click on bottom, action: CHANGE_END
-    //    click on middle, action: MOVE
-    // if the click is in the border of an element: CREATE
-    // on render, do not render the changing event in the list, but in a special element
-    const eventUnderCursor = events.find(event =>
-      !event.allDay &&
-      event.start.getTime() <= dateUnderCursor.getTime() &&
-      event.end.getTime() >= dateUnderCursor.getTime());
-    if (eventUnderCursor) {
-      const eventTop = calcTop(eventUnderCursor.start);
-      const eventBottom = moment(eventUnderCursor.end).tz(timeZone).isSame(moment(eventUnderCursor.start).tz(timeZone), 'days') ?
-        calcTop(eventUnderCursor.end) :
-        hoursToPixels(maxHour - minHour);
-      let action;
-      if (eventBottom - eventTop < minEventHeight) {
-        if (hoursToPixels(maxHour - minHour) - eventBottom < minEventHeight) {
-          action = DragAction.CHANGE_START;
-        } else {
-          action = DragAction.CHANGE_END;
-        }
-      } else {
-        if (top - eventTop < topHandleHeight) {
-          action = DragAction.CHANGE_START;
-        } else if (eventBottom - top <= bottomHandleHeight) {
-          action = DragAction.CHANGE_END;
-        } else {
-          action = DragAction.MOVE;
-        }
-      }
+    if (minutesUnderCursor >= 1440) return; // only allow creating events on the same column
 
-      // offset is used to make the dragging more natural, if you start from the middle, use the middle as a reference to move the event
-      dragContextRef.current = {
-        action,
-        date: adjustedDateUnderCursor,
-        offset: nearestNumber(pixelsToMinutes(action === DragAction.CHANGE_END ? top - eventBottom : top - eventTop), step)
-      };
-      setDragEvent({
-        ...eventUnderCursor
-      });
-      setOriginalDragEvent(eventUnderCursor);
-    } else {
-      dragContextRef.current = {
-        action: DragAction.CREATE,
-        date: adjustedDateUnderCursor
-      };
-      setDragEvent({
-        start: adjustedDateUnderCursor,
-        end: moment(adjustedDateUnderCursor).add(defaultEventDurationMinutes, 'minutes').toDate(),
-        summary: 'new event'
-      });
+    // eslint-disable-next-line default-case
+    switch (editionMode) {
+      case EditionMode.EVENTS:
+        // if the click is in the bound of an element:
+        //    click on top, action: CHANGE_START
+        //    click on bottom, action: CHANGE_END
+        //    click on middle, action: MOVE
+        // if the click is in the border of an element: CREATE
+        // on render, do not render the changing event in the list, but in a special element
+        const eventUnderCursor = events.find(event =>
+          !event.allDay &&
+          event.start.getTime() <= dateUnderCursor.getTime() &&
+          event.end.getTime() >= dateUnderCursor.getTime());
+        if (eventUnderCursor) {
+          const eventTop = calcTop(eventUnderCursor.start);
+          const eventBottom = moment(eventUnderCursor.end).tz(timeZone).isSame(moment(eventUnderCursor.start).tz(timeZone), 'days') ?
+            calcTop(eventUnderCursor.end) :
+            hoursToPixels(maxHour - minHour);
+          let action;
+          if (eventBottom - eventTop < minEventHeight) {
+            if (hoursToPixels(maxHour - minHour) - eventBottom < minEventHeight) {
+              action = DragAction.CHANGE_START;
+            } else {
+              action = DragAction.CHANGE_END;
+            }
+          } else {
+            if (top - eventTop < topHandleHeight) {
+              action = DragAction.CHANGE_START;
+            } else if (eventBottom - top <= bottomHandleHeight) {
+              action = DragAction.CHANGE_END;
+            } else {
+              action = DragAction.MOVE;
+            }
+          }
+
+          // offset is used to make the dragging more natural, if you start from the middle, use the middle as a reference to move the event
+          dragContextRef.current = {
+            action,
+            date: adjustedDateUnderCursor,
+            offset: nearestNumber(pixelsToMinutes(action === DragAction.CHANGE_END ? top - eventBottom : top - eventTop), step)
+          };
+          setDragEvent({
+            ...eventUnderCursor
+          });
+          setOriginalDragEvent(eventUnderCursor);
+        } else {
+          dragContextRef.current = {
+            action: DragAction.CREATE,
+            date: adjustedDateUnderCursor
+          };
+          setDragEvent({
+            start: adjustedDateUnderCursor,
+            end: moment(adjustedDateUnderCursor).add(defaultEventDurationMinutes, 'minutes').toDate(),
+            summary: 'new event'
+          });
+        }
+        setDragging(true);
+        break;
+      case EditionMode.SLOTS:
+        // eslint-disable-next-line default-case
+        switch (calendarType) {
+          case CalendarType.SPECIFIC:
+            const slotUnderCursor = slots.find(slot =>
+              slot.start.getTime() <= dateUnderCursor.getTime() &&
+              slot.end.getTime() >= dateUnderCursor.getTime());
+            if (slotUnderCursor) {
+              const slotTop = calcTop(slotUnderCursor.start);
+              const slotBottom = moment(slotUnderCursor.end).tz(timeZone).isSame(moment(slotUnderCursor.start).tz(timeZone), 'days') ?
+                calcTop(slotUnderCursor.end) :
+                hoursToPixels(maxHour - minHour);
+              let action;
+              if (slotBottom - slotTop < minEventHeight) {
+                if (hoursToPixels(maxHour - minHour) - slotBottom < minEventHeight) {
+                  action = DragAction.CHANGE_START;
+                } else {
+                  action = DragAction.CHANGE_END;
+                }
+              } else {
+                if (top - slotTop < topHandleHeight) {
+                  action = DragAction.CHANGE_START;
+                } else if (slotBottom - top <= bottomHandleHeight) {
+                  action = DragAction.CHANGE_END;
+                } else {
+                  action = DragAction.MOVE;
+                }
+              }
+
+              // offset is used to make the dragging more natural
+              dragContextRef.current = {
+                action,
+                date: adjustedDateUnderCursor,
+                offset: nearestNumber(pixelsToMinutes(action === DragAction.CHANGE_END ? top - slotBottom : top - slotTop), step)
+              };
+              setDragEvent({
+                ...slotUnderCursor
+              });
+              setOriginalDragEvent(slotUnderCursor);
+            } else {
+              const newStart = adjustedDateUnderCursor;
+              const newEnd = moment(adjustedDateUnderCursor).add(minEventDurationMinutes, 'minutes').toDate();
+              if (checkCollisionLocal(newStart, newEnd)) {
+                return;
+              }
+              dragContextRef.current = {
+                action: DragAction.CREATE,
+                date: adjustedDateUnderCursor
+              };
+              setDragEvent({
+                start: newStart,
+                end: newEnd,
+              });
+            }
+            setDragging(true);
+            break;
+          case CalendarType.GENERIC:
+            const recurringSlotUnderCursor = weeklyRecurringSlots.find(slot =>
+              dateUnderCursor.getDay() === slot.dayOfWeek &&
+              slot.startMinutes <= minutesUnderCursor &&
+              slot.endMinutes >= minutesUnderCursor);
+            if (recurringSlotUnderCursor) {
+              const startOfDay = moment(GENERIC_DATE).tz(timeZone).startOf('weeks').add(recurringSlotUnderCursor.dayOfWeek, 'days');
+              const start = startOfDay.clone().add(recurringSlotUnderCursor.startMinutes, 'minutes');
+              const end = startOfDay.clone().add(recurringSlotUnderCursor.endMinutes, 'minutes');
+              const slotTop = calcTop(start.toDate());
+              const slotBottom = start.isSame(end, 'days') ?
+                calcTop(end.toDate()) :
+                hoursToPixels(maxHour - minHour);
+              let action;
+              if (slotBottom - slotTop < minEventHeight) {
+                if (hoursToPixels(maxHour - minHour) - slotBottom < minEventHeight) {
+                  action = DragAction.CHANGE_START;
+                } else {
+                  action = DragAction.CHANGE_END;
+                }
+              } else {
+                if (top - slotTop < topHandleHeight) {
+                  action = DragAction.CHANGE_START;
+                } else if (slotBottom - top <= bottomHandleHeight) {
+                  action = DragAction.CHANGE_END;
+                } else {
+                  action = DragAction.MOVE;
+                }
+              }
+
+              // offset is used to make the dragging more natural
+              dragContextRef.current = {
+                action,
+                date: adjustedDateUnderCursor,
+                offset: nearestNumber(pixelsToMinutes(action === DragAction.CHANGE_END ? top - slotBottom : top - slotTop), step)
+              };
+              setDragEvent({
+                ...recurringSlotUnderCursor,
+                start: start.toDate(),
+                end: end.toDate(),
+              });
+              setOriginalDragEvent(recurringSlotUnderCursor);
+            } else {
+              const newStart = adjustedDateUnderCursor;
+              const newEnd = moment(adjustedDateUnderCursor).add(minEventDurationMinutes, 'minutes').toDate();
+              if (checkCollisionLocal(newStart, newEnd)) {
+                return;
+              }
+              dragContextRef.current = {
+                action: DragAction.CREATE,
+                date: adjustedDateUnderCursor
+              };
+              setDragEvent({
+                start: newStart,
+                end: newEnd,
+              });
+            }
+            setDragging(true);
+            break;
+        }
+        break;
     }
-
-    setDragging(true);
-  }, [hoursContainerWidth, dayWidth, columnDates, maxHour, minHour, pixelsToMinutes, step, events, calcTop, timeZone, hoursToPixels, minEventHeight, topHandleHeight, bottomHandleHeight, defaultEventDurationMinutes]);
+  }, [editionMode, hoursContainerWidth, dayWidth, columnDates, hoursToPixels, maxHour, minHour, pixelsToMinutes, step, events, calendarType, calcTop, timeZone, minEventHeight, topHandleHeight, bottomHandleHeight, defaultEventDurationMinutes, slots, weeklyRecurringSlots, minEventDurationMinutes, checkCollisionLocal]);
 
   const handleMouseUp = useCallback(e => {
     if (e.button !== 0) return;
-    setDragging(false);
-
     if (!dragContextRef.current) return;
 
-    switch (dragContextRef.current.action) {
-      case DragAction.CREATE:
-        onCreate && onCreate(dragEvent);
-        break;
-      case DragAction.CHANGE_START:
-      case DragAction.CHANGE_END:
-      case DragAction.MOVE:
-        onChange && onChange(dragOriginalEvent, dragEvent);
-        break;
-      default:
-        break;
+    if (calendarType === CalendarType.SPECIFIC) {
+      if (editionMode === EditionMode.EVENTS) {
+        // eslint-disable-next-line default-case
+        switch (dragContextRef.current.action) {
+          case DragAction.CREATE:
+            onCreateEvent && onCreateEvent(dragEvent);
+            break;
+          case DragAction.CHANGE_START:
+          case DragAction.CHANGE_END:
+          case DragAction.MOVE:
+            onChangeEvent && onChangeEvent(dragOriginalEvent, dragEvent);
+            break;
+        }
+      } else if (editionMode === EditionMode.SLOTS) {
+        // eslint-disable-next-line default-case
+        switch (dragContextRef.current.action) {
+          case DragAction.CREATE:
+            onCreateSlot && onCreateSlot(dragEvent);
+            break;
+          case DragAction.CHANGE_START:
+          case DragAction.CHANGE_END:
+          case DragAction.MOVE:
+            onChangeSlot && onChangeSlot(dragOriginalEvent, dragEvent);
+            break;
+        }
+      }
+    } else if (calendarType === CalendarType.GENERIC && editionMode === EditionMode.SLOTS) {
+      // eslint-disable-next-line default-case
+      switch (dragContextRef.current.action) {
+        case DragAction.CREATE:
+          onCreateWeeklyRecurringSlot && onCreateWeeklyRecurringSlot({
+            dayOfWeek: moment(dragEvent.start).tz(timeZone).weekday(),
+            startMinutes: moment(dragEvent.start).tz(timeZone).diff(moment(dragEvent.start).tz(timeZone).startOf('days'), 'minutes'),
+            endMinutes: moment(dragEvent.end).tz(timeZone).diff(moment(dragEvent.start).tz(timeZone).startOf('days'), 'minutes')
+          });
+          break;
+        case DragAction.CHANGE_START:
+        case DragAction.CHANGE_END:
+        case DragAction.MOVE:
+          onChangeWeeklyRecurringSlot && onChangeWeeklyRecurringSlot(dragOriginalEvent, {
+            ...dragOriginalEvent,
+            dayOfWeek: moment(dragEvent.start).tz(timeZone).weekday(),
+            startMinutes: moment(dragEvent.start).tz(timeZone).diff(moment(dragEvent.start).tz(timeZone).startOf('days'), 'minutes'),
+            endMinutes: moment(dragEvent.end).tz(timeZone).diff(moment(dragEvent.start).tz(timeZone).startOf('days'), 'minutes')
+          });
+          break;
+      }
     }
 
+    setDragging(false);
     setDragEvent(null);
     setOriginalDragEvent(null);
     dragContextRef.current = null;
-  }, [dragOriginalEvent, dragEvent, onCreate, onChange]);
+  }, [timeZone, calendarType, editionMode, dragEvent, dragOriginalEvent, onCreateEvent, onChangeEvent, onCreateSlot, onChangeSlot, onCreateWeeklyRecurringSlot, onChangeWeeklyRecurringSlot]);
 
   useEffect(() => {
     window.addEventListener('mousedown', handleMouseDown);
@@ -406,24 +636,34 @@ const Calendar = ({
   }, [handleMouseDown, handleMouseUp, handleMouseMove]);
 
   const handleDeleteEventClick = useCallback(event => {
-    onDelete && onDelete(event);
-  }, [onDelete]);
+    onDeleteEvent && onDeleteEvent(event);
+  }, [onDeleteEvent]);
+
+  const handleDeleteSlotClick = useCallback(slot => {
+    onDeleteSlot && onDeleteSlot(slot);
+  }, [onDeleteSlot]);
+
+  const handleDeleteWeeklyRecurringSlotClick = useCallback(slot => {
+    onDeleteWeeklyRecurringSlot && onDeleteWeeklyRecurringSlot(slot);
+  }, [onDeleteWeeklyRecurringSlot]);
 
   const renderedDayEventContainer = useMemo(() => {
     return columnDates.map(date => {
       return (
-        <div className='calendar__content__day__event__container'>
+        <>
           {Array.from({length: maxHour - minHour}).map((_, i) => minHour + i).map(hour => (
-            <div key={hour} className={`calendar__content__day__slot${calendarView !== CalendarView.SINGLE_DAY && isToday(date, timeZone) ? ' today' : ''}`}
+            <div key={hour}
+                 className={`calendar__content__day__grid${calendarView !== CalendarView.SINGLE_DAY && isToday(date, timeZone) ? ' today' : ''}`}
                  style={{top: hoursToPixels(hour - minHour), height: hoursToPixels(1)}}/>
           ))}
-        </div>
+        </>
       );
     })
   }, [calendarView, columnDates, hoursToPixels, maxHour, minHour, timeZone]);
 
   const renderedEvents = useMemo(() => {
     return columnDates.map(date => {
+      if (calendarType !== CalendarType.SPECIFIC) return null;
       const startOfDay = moment(date).tz(timeZone).startOf('days');
       return events
         .filter(event => event) // HACK hot-reloader throws an error
@@ -437,22 +677,107 @@ const Calendar = ({
         .map((event, index) => (
           <div key={index} className='calendar__content__day__event' style={{
             top: calcTop(event.start, timeZone, minHour),
-            height: calcHeight(event.start, event.end)
-          }}
-               title={event.summary}
+            height: calcHeight(event.start, event.end),
+            pointerEvents: editionMode !== EditionMode.EVENTS ? "none" : "auto"
+          }} title={event.summary}
           >
-            <div className='calendar__content__day__event__top' style={{height: topHandleHeight}}/>
-            <div className='calendar__content__day__event__main'>
-              {event.summary}
-            </div>
-            <div className='calendar__content__day__event__bottom' style={{height: bottomHandleHeight}}/>
-            <div className='calendar__content__day__event__delete' onClick={() => handleDeleteEventClick(event)}>
-              ❌
-            </div>
+            {editionMode === EditionMode.EVENTS ? (<>
+              <div style={{height: topHandleHeight, cursor: 'n-resize'}}/>
+              <div style={{flex: 1, cursor: 'move'}}>
+                {moment(event.start).tz(timeZone).format('h:mma')} - {moment(event.end).tz(timeZone).format('h:mma')}<br/>
+                {event.summary}
+              </div>
+              <div style={{height: bottomHandleHeight, cursor: 's-resize'}}/>
+              <div onClick={() => handleDeleteEventClick(event)}
+                   style={{position: 'absolute', top: 0, right: 0, cursor: 'pointer'}}>
+                ❌
+              </div>
+            </>) : (
+              <div style={{flex: 1}}>
+                {moment(event.start).tz(timeZone).format('h:mma')} - {moment(event.end).tz(timeZone).format('h:mma')}<br/>
+                {event.summary}
+              </div>
+            )}
           </div>
         ));
     });
-  }, [bottomHandleHeight, calcHeight, calcTop, columnDates, dragOriginalEvent, events, handleDeleteEventClick, maxHour, minHour, timeZone, topHandleHeight]);
+  }, [bottomHandleHeight, calcHeight, calcTop, calendarType, editionMode, columnDates, dragOriginalEvent, events, handleDeleteEventClick, maxHour, minHour, timeZone, topHandleHeight]);
+
+  const renderedSlots = useMemo(() => {
+    switch (calendarType) {
+      case CalendarType.GENERIC:
+        // use weekly recurring slots
+        return columnDates.map(date => {
+          // date is GENERIC_DATE
+          const startOfDay = moment(date).tz(timeZone).startOf('days');
+          return weeklyRecurringSlots
+            .filter(slot => slot) // HACK hot-reloader throws an error
+            .filter(slot => !dragOriginalEvent || slot !== dragOriginalEvent) // do not render slot being dragged
+            .filter(slot => startOfDay.weekday() === slot.dayOfWeek)
+            .filter(slot => startOfDay.clone().add(slot.startMinutes, 'minutes').hours() <= maxHour)
+            .map((slot, index) => (
+              <div key={index} className='calendar__content__day__slot' style={{
+                top: calcTop(startOfDay.clone().add(slot.startMinutes, 'minutes'), timeZone, minHour),
+                height: calcHeight(startOfDay.clone().add(slot.startMinutes, 'minutes'), startOfDay.clone().add(slot.endMinutes, 'minutes')),
+                pointerEvents: editionMode !== EditionMode.SLOTS ? "none" : "auto"
+              }}>
+                {editionMode === EditionMode.SLOTS ? (<>
+                  <div style={{height: topHandleHeight, cursor: 'n-resize'}}/>
+                  <div style={{flex: 1, cursor: 'move'}}>
+                    {startOfDay.clone().add(slot.startMinutes, 'minutes').format('h:mma')} - {startOfDay.clone().add(slot.endMinutes, 'minutes').format('h:mma')}
+                  </div>
+                  <div style={{height: bottomHandleHeight, cursor: 's-resize'}}/>
+                  <div onClick={() => handleDeleteWeeklyRecurringSlotClick(slot)}
+                       style={{position: 'absolute', top: 0, right: 0, cursor: 'pointer'}}>
+                    ❌
+                  </div>
+                </>) : (
+                  <div style={{flex: 1}}>
+                    {startOfDay.clone().add(slot.startMinutes, 'minutes').format('h:mma')} - {startOfDay.clone().add(slot.endMinutes, 'minutes').format('h:mma')}
+                  </div>
+                )}
+              </div>
+            ));
+        });
+      case CalendarType.SPECIFIC:
+      default:
+        // use weekly recurring slots
+        return columnDates.map(date => {
+          const startOfDay = moment(date).tz(timeZone).startOf('days');
+          return slots
+            .filter(slot => slot) // HACK hot-reloader throws an error
+            .filter(slot => !dragOriginalEvent || slot !== dragOriginalEvent) // do not render slot being dragged
+            .filter(slot => startOfDay.isSame(moment(slot.start).tz(timeZone), 'days'))
+            .filter(slot => moment(slot.start).tz(timeZone).hours() <= maxHour)
+            .filter(slot =>
+              !moment(slot.start).tz(timeZone).isSame(moment(slot.end).tz(timeZone), 'days') ||
+              moment(slot.start).tz(timeZone).hours() <= maxHour)
+            .map((slot, index) => (
+              <div key={index} className='calendar__content__day__slot' style={{
+                top: calcTop(slot.start, timeZone, minHour),
+                height: calcHeight(slot.start, slot.end),
+                pointerEvents: editionMode !== EditionMode.SLOTS ? "none" : "auto"
+              }}>
+                {editionMode === EditionMode.SLOTS ? (<>
+                  <div style={{height: topHandleHeight, cursor: 'n-resize'}}/>
+                  <div style={{flex: 1, cursor: 'move'}}>
+                    {moment(slot.start).tz(timeZone).format('h:mma')} - {moment(slot.end).tz(timeZone).format('h:mma')}
+                  </div>
+                  <div style={{height: bottomHandleHeight, cursor: 's-resize'}}/>
+                  <div onClick={() => handleDeleteSlotClick(slot)}
+                       style={{position: 'absolute', top: 0, right: 0, cursor: 'pointer'}}>
+                    ❌
+                  </div>
+                </>) : (
+                  <div style={{flex: 1}}>
+                    {moment(slot.start).tz(timeZone).format('h:mma')} - {moment(slot.end).tz(timeZone).format('h:mma')}
+                  </div>
+                )}
+              </div>
+            ));
+        });
+    }
+  }, [bottomHandleHeight, calcHeight, calcTop, calendarType, columnDates, dragOriginalEvent, editionMode, handleDeleteSlotClick, handleDeleteWeeklyRecurringSlotClick, maxHour, minHour, slots, timeZone, topHandleHeight, weeklyRecurringSlots]);
 
   return (
     <div className={`calendar__container ${className || ""}`} style={style} ref={containerRef}>
@@ -466,17 +791,17 @@ const Calendar = ({
               <span style={{textAlign: 'center'}}>{moment(date).tz(timeZone).format('ddd D')}</span>
               {events
                 .filter(event => event) // HACK hot reloader throws an error
-                  .filter(event => event.allDay)
-                  .filter(event => moment(date).tz(timeZone).isSame(moment(event.start).tz(timeZone), 'days'))
-                  .map((event, index) => (
-                    <div key={index} className='calendar__header__event' title={event.summary}>
-                      {event.summary}
-                    </div>
-                  ))
+                .filter(event => event.allDay)
+                .filter(event => moment(date).tz(timeZone).isSame(moment(event.start).tz(timeZone), 'days'))
+                .map((event, index) => (
+                  <div key={index} className='calendar__header__event' title={event.summary}>
+                    {event.summary}
+                  </div>
+                ))
               }
             </>) : calendarView !== CalendarView.SINGLE_DAY ? (
               <span style={{textAlign: 'center'}}>{moment(date).tz(timeZone).format('ddd')}</span>
-            ) :  null}
+            ) : null}
           </div>
         ))}
         <div style={{width: scrollbarWidth, minWidth: scrollbarWidth}}/>
@@ -496,39 +821,48 @@ const Calendar = ({
           ))}
         </div>
 
-        {columnDates.map((date, index) => {
-          const isToday_ = isToday(date, timeZone);
+        {columnDates.map((date, index) => (
+          <div key={date} className='calendar__content__day'
+               style={{
+                 width: dayWidth,
+                 minWidth: dayWidth,
+                 maxWidth: dayWidth,
+                 height: hoursToPixels(maxHour - minHour)
+               }}>
 
-          return (
-            <div key={date} className='calendar__content__day'
-                 style={{
-                   width: dayWidth,
-                   minWidth: dayWidth,
-                   maxWidth: dayWidth,
-                   height: hoursToPixels(maxHour - minHour)
-                 }}>
+            {renderedDayEventContainer[index]}
 
-              {renderedDayEventContainer[index]}
+            {renderedSlots[index]}
+            {renderedEvents[index]}
 
-              <div className='calendar__content__day__event__container'>
-                {renderedEvents[index]}
-                {dragEvent && moment(dragEvent.start).tz(timeZone).isSame(moment(date).tz(timeZone), 'days') ? (
-                  <div className='calendar__content__day__drag-create-event' style={{
-                    top: calcTop(dragEvent.start),
-                    height: calcHeight(dragEvent.start, dragEvent.end)
-                  }}>
-                    {moment(dragEvent.start).tz(timeZone).format('h:mma')} - {moment(dragEvent.end).tz(timeZone).format('h:mma')}<br/>
-                    {dragEvent.summary}
-                  </div>
-                ) : null}
+            {/* events */}
+            {isDragging && editionMode === EditionMode.EVENTS &&
+            dragEvent && isSameDay(dragEvent.start, date, timeZone) && (
+              <div className='calendar__content__day__event__dragging' style={{
+                top: calcTop(dragEvent.start),
+                height: calcHeight(dragEvent.start, dragEvent.end)
+              }}>
+                {moment(dragEvent.start).tz(timeZone).format('h:mma')} - {moment(dragEvent.end).tz(timeZone).format('h:mma')}<br/>
+                {dragEvent.summary}
               </div>
+            )}
 
-              {isToday_ && nowTop ? (<>
-                <div className='calendar__content__day__current-time' style={{top: nowTop}}/>
-              </>) : null}
-            </div>
-          );
-        })}
+            {/* specific slots */}
+            {isDragging && editionMode === EditionMode.SLOTS &&
+            dragEvent && isSameDay(dragEvent.start, date, timeZone) && (
+              <div className='calendar__content__day__slot__dragging' style={{
+                top: calcTop(dragEvent.start),
+                height: calcHeight(dragEvent.start, dragEvent.end)
+              }}>
+                {moment(dragEvent.start).tz(timeZone).format('h:mma')} - {moment(dragEvent.end).tz(timeZone).format('h:mma')}<br/>
+              </div>
+            )}
+
+            {isToday(date, timeZone) && nowTop ? (<>
+              <div className='calendar__content__day__current-time' style={{top: nowTop}}/>
+            </>) : null}
+          </div>
+        ))}
       </div>
     </div>
   )
