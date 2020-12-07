@@ -58,3 +58,7 @@ export const isToday = (date, timeZone) => {
 export const isSameDay = (date1, date2, timeZone) => {
     return moment(date1).tz(timeZone).isSame(moment(date2).tz(timeZone), 'days');
 }
+
+export const minutesOfDay = (date, timeZone) => {
+    return moment(date).tz(timeZone).diff(moment(date).tz(timeZone).startOf('days'), 'minutes');
+}

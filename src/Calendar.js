@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import moment from 'moment-timezone';
 import './Calendar.css';
-import {checkCollision, isSameDay, isToday, nearestMinutes} from './dateUtils';
+import {checkCollision, isSameDay, isToday, minutesOfDay, nearestMinutes} from './dateUtils';
 import {nearestNumber} from './numberUtils';
 
 export const CalendarType = {
@@ -434,6 +434,10 @@ const Calendar = ({
           });
           setOriginalDragEvent(eventUnderCursor);
         } else {
+          // do not create events at midnight for tomorrow
+          if (minutesUnderCursor > 0 && minutesOfDay(adjustedDateUnderCursor, timeZone) === 0) {
+            return;
+          }
           dragContextRef.current = {
             action: DragAction.CREATE,
             date: adjustedDateUnderCursor
@@ -491,6 +495,10 @@ const Calendar = ({
               if (checkCollisionLocal(newStart, newEnd)) {
                 return;
               }
+              // do not create events at midnight for tomorrow
+              if (minutesUnderCursor > 0 && minutesOfDay(adjustedDateUnderCursor, timeZone) === 0) {
+                return;
+              }
               dragContextRef.current = {
                 action: DragAction.CREATE,
                 date: adjustedDateUnderCursor
@@ -545,6 +553,10 @@ const Calendar = ({
               });
               setOriginalDragEvent(recurringSlotUnderCursor);
             } else {
+              // do not create events at midnight for tomorrow
+              if (minutesUnderCursor > 0 && minutesOfDay(adjustedDateUnderCursor, timeZone) === 0) {
+                return;
+              }
               const newStart = adjustedDateUnderCursor;
               const newEnd = moment(adjustedDateUnderCursor).add(minEventDurationMinutes, 'minutes').toDate();
               if (checkCollisionLocal(newStart, newEnd)) {
