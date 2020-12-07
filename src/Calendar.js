@@ -282,7 +282,7 @@ const Calendar = ({
       case DragAction.MOVE:
         setDragEvent(prev => {
           const eventDay = moment(dateUnderCursor).tz(timeZone).startOf('days');
-          if (minutesUnderCursor >= 1440) { // prevent moving to the next day when at the bottom
+          if (minutesUnderCursor >= maxHour * 60) { // prevent moving to the next day when at the bottom
             eventDay.subtract(1, 'days');
           }
           const durationMinutes = moment(prev.end).diff(moment(prev.start), 'minutes');
@@ -381,10 +381,12 @@ const Calendar = ({
     }
 
     const minutesUnderCursor = minHour * 60 + pixelsToMinutes(top);
+    if (minutesUnderCursor >= maxHour * 60) { // only allow creating events on the same column
+      return;
+    }
     const dateUnderCursor = columnDates[0].clone().add(Math.floor(left / dayWidth), 'days').add(minutesUnderCursor, 'minutes').toDate();
     const adjustedDateUnderCursor = nearestMinutes(dateUnderCursor, step);
 
-    if (minutesUnderCursor >= 1440) return; // only allow creating events on the same column
 
     // eslint-disable-next-line default-case
     switch (editionMode) {
