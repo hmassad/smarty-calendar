@@ -91,8 +91,8 @@ const App = () => {
   const handleDeleteEvent = (event) => {
     setEvents(prev => {
       return prev.filter(event1 => event !== event1);
-    })
-  }
+    });
+  };
 
   const handleCreateSlot = event => {
     setSlots(prev => [...prev, event]);
@@ -103,14 +103,14 @@ const App = () => {
       const arr = prev.filter(event => event !== originalEvent);
       arr.push({...originalEvent, ...newEvent});
       return arr;
-    })
-  }
+    });
+  };
 
   const handleDeleteSlot = (deletedSlot) => {
     setSlots(prev => {
       return prev.filter(event1 => deletedSlot !== event1);
-    })
-  }
+    });
+  };
 
   const handleCreateWeeklyRecurringSlot = event => {
     setWeeklyRecurringSlots(prev => [...prev, event]);
@@ -121,18 +121,18 @@ const App = () => {
       const arr = prev.filter(item => item !== originalEvent);
       arr.push({...originalEvent, ...newEvent});
       return arr;
-    })
-  }
+    });
+  };
 
   const handleDeleteWeeklyRecurringSlot = (event) => {
     setWeeklyRecurringSlots(prev => {
       return prev.filter(event1 => event !== event1);
-    })
-  }
+    });
+  };
 
   const changeDate = (amount, unit) => {
     setCurrentDate(prev => moment(prev).tz(timeZone).add(amount, unit));
-  }
+  };
 
   return (
     <div style={{height: "100vh", display: "flex", flexDirection: "column"}}>
@@ -185,7 +185,7 @@ const App = () => {
         onCreateWeeklyRecurringSlot={handleCreateWeeklyRecurringSlot}
         onChangeWeeklyRecurringSlot={handleChangeWeeklyRecurringSlot}
         onDeleteWeeklyRecurringSlot={handleDeleteWeeklyRecurringSlot}
-        pixelsPerHour={100} minHour={0} maxHour={24}
+        pixelsPerHour={20} minHour={0} maxHour={24}
       />
       <div>footer</div>
     </div>
