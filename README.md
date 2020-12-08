@@ -38,7 +38,7 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 - drag move
 - allow event deletion
 - variable pixel height
-- prevent render of unaffected components on mouse move
+- prevent rendering of unaffected components on mouse move
 - wrong calculation of time in events, it calculates 4 when it must be 5, must review
 - minimum event duration
 - do not allow overlapping of events while dragging
@@ -52,3 +52,4 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 - interval creation mode / event creation mode, events and slots don't interact with each other
 - don't let creation of new slots if they don't fit (mouse down and default duration)
 - when moving an event past the bottom of the calendar, it moves to the next day (mouse move)
+- allow popups on top of calendar

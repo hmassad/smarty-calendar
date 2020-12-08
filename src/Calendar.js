@@ -365,7 +365,8 @@ const Calendar = ({
       dragContextRef.current = null;
       return;
     }
-    if (e.target.onclick) return; // allow clicking on inner elements
+    if (e.target.onclick) return; // allow clicking on upper elements
+    if (!calendarContentRef.current.contains(e.target)) return; // only fire if clicking on calendar
 
     const calendarContentRect = calendarContentRef.current.getBoundingClientRect();
     const left = e.clientX - calendarContentRect.left - hoursContainerWidth;
