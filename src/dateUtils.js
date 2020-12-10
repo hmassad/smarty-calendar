@@ -2,42 +2,6 @@ import moment from 'moment-timezone';
 
 /**
  *
- * @param date {Date}
- * @param minutes {number}
- * @returns {Date}
- */
-export const nearestMinutes = (date, minutes) => {
-    const m = moment(date);
-    const roundedMinutes = Math.round(m.minute() / minutes) * minutes;
-    return m.startOf('hours').minute(roundedMinutes).toDate();
-}
-
-/**
- *
- * @param date {Date}
- * @param minutes {number}
- * @returns {Date}
- */
-export const nearestPastMinutes = (date, minutes) => {
-    const m = moment(date);
-    const roundedMinutes = Math.floor(m.minute() / minutes) * minutes;
-    return m.startOf('hours').minute(roundedMinutes).toDate();
-}
-
-/**
- *
- * @param date {Date}
- * @param minutes {number}
- * @returns {Date}
- */
-export const nearestFutureMinutes = (date, minutes) => {
-    const m = moment(date);
-    const roundedMinutes = Math.ceil(m.minute() / minutes) * minutes;
-    return m.startOf('hours').minute(roundedMinutes).toDate();
-}
-
-/**
- *
  * @param start1 {Date}
  * @param end1 {Date}
  * @param start2 {Date}
@@ -57,8 +21,4 @@ export const isToday = (date, timeZone) => {
 
 export const isSameDay = (date1, date2, timeZone) => {
     return moment(date1).tz(timeZone).isSame(moment(date2).tz(timeZone), 'days');
-}
-
-export const minutesOfDay = (date, timeZone) => {
-    return moment(date).tz(timeZone).diff(moment(date).tz(timeZone).startOf('days'), 'minutes');
 }

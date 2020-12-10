@@ -17,7 +17,6 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
 ## ✨ Nice to have
 
-- mouse move: shadow with default duration when a user is not dragging but moving the mouse over the calendar
 - support events spanning more than one day, drawing and drag moving
 - multiline ellipsis for all day events
 - use colors from events
@@ -53,3 +52,4 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 - don't let creation of new slots if they don't fit (mouse down and default duration)
 - when moving an event past the bottom of the calendar, it moves to the next day (mouse move)
 - allow popups on top of calendar
+- mouse move: shadow with default duration when a user is not dragging but moving the mouse over the calendar

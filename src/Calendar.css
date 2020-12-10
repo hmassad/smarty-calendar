@@ -1,5 +1,3 @@
-/* palette https://coolors.co/cc2936-d5c6e0-3b3355-5d5d81-bfcde0 */
-
 .calendar__container {
     user-select: none; /* prevent text selection */
 
@@ -47,6 +45,7 @@
 }
 
 .calendar__content__day {
+    pointer-events: none;
     position: relative;
 }
 
@@ -97,7 +96,7 @@
     right: 5px;
 }
 
-.calendar__content__day__event__dragging, .calendar__content__day__slot__dragging {
+.calendar__content__day__event__dragging, .calendar__content__day__slot__dragging, .calendar__content__day__indicator__dragging {
     position: absolute;
     z-index: 500;
     font-size: 12px;
@@ -108,6 +107,7 @@
     cursor: default;
     opacity: 75%;
     left: 0;
+    right: 0;
 }
 
 .calendar__content__day__slot {
@@ -123,8 +123,12 @@
 }
 
 .calendar__content__day__slot__dragging {
-    right: 0;
     background-color: #05283A;
+    color: white;
+}
+
+.calendar__content__day__indicator__dragging {
+    background-color: #FFC700;
     color: white;
 }
 
