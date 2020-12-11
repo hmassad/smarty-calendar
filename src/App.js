@@ -3,14 +3,24 @@ import './App.css'
 import moment from 'moment-timezone';
 import Calendar, {CalendarType, CalendarView, EditionMode} from './Calendar';
 
+const DayHeader = ({date, events}) => {
+  return (
+    <div>
+      {date.toLocaleString()}<br/>
+      all day: {`${events.filter(event => event.allDay).length}`}<br/>
+      other: {`${events.filter(event => !event.allDay).length}`}
+    </div>
+  );
+}
+
 const App = () => {
 
   const [timeZone] = useState('America/Argentina/Buenos_Aires');
   const [currentDate, setCurrentDate] = useState(moment().tz(timeZone));
 
-  const [calendarType, setCalendarType] = useState(CalendarType.GENERIC);
+  const [calendarType, setCalendarType] = useState(CalendarType.SPECIFIC);
   const [calendarView, setCalendarView] = useState(CalendarView.WEEK);
-  const [editionMode, setEditionMode] = useState(EditionMode.SLOTS);
+  const [editionMode, setEditionMode] = useState(EditionMode.EVENTS);
 
   const [events, setEvents] = useState(() => {
     const today = moment().tz(timeZone).startOf('days');
@@ -185,7 +195,8 @@ const App = () => {
         onCreateWeeklyRecurringSlot={handleCreateWeeklyRecurringSlot}
         onChangeWeeklyRecurringSlot={handleChangeWeeklyRecurringSlot}
         onDeleteWeeklyRecurringSlot={handleDeleteWeeklyRecurringSlot}
-        pixelsPerHour={20} minHour={0} maxHour={24}
+        pixelsPerHour={50} minHour={0} maxHour={24}
+        DayHeader={DayHeader}
       />
       <div>footer</div>
     </div>

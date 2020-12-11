@@ -21,6 +21,21 @@
     color: white;
 }
 
+.calendar__header__day__has-event {
+    position: relative;
+}
+.calendar__header__day__has-event:after {
+    content: '';
+    position: absolute;
+    bottom: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    background-color: white;
+}
+
 .calendar__content {
     flex: 1;
     display: flex;

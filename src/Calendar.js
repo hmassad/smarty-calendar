@@ -68,7 +68,8 @@ const Calendar = ({
                     bottomHandleHeight = 10,
                     hoursContainerWidth = 40,
                     className,
-                    style
+                    style,
+                    DayHeader
                   }) => {
 
   const columnDates = useMemo(() => {
@@ -405,9 +406,9 @@ const Calendar = ({
           // if we are colliding with a slot/event, try to move up check if it fits
           let min;
           if (calendarType === CalendarType.GENERIC) {
-            min = columnDate.clone().add(Math.min(overlapped.map(slot => slot.startMinutes)), 'minutes');
+            min = columnDate.clone().add(Math.min(...overlapped.map(slot => slot.startMinutes)), 'minutes');
           } else {
-            min = moment(Math.min(overlapped.map(event => event.start.getTime()))).tz(timeZone);
+            min = moment(Math.min(...overlapped.map(event => event.start.getTime()))).tz(timeZone);
           }
           min.subtract(defaultDurationMinutes, 'minutes');
           if (Math.abs(min.diff(adjustedDateUnderCursor, 'minutes')) <= defaultDurationMinutes) {
@@ -550,10 +551,10 @@ const Calendar = ({
         let min;
         if (calendarType === CalendarType.GENERIC) {
           min = columnDate.clone()
-              .add(Math.min(overlapped.map(slot => slot.startMinutes)), 'minutes')
+              .add(Math.min(...overlapped.map(slot => slot.startMinutes)), 'minutes')
               .subtract(defaultDurationMinutes, 'minutes');
         } else {
-          min = moment(Math.min(overlapped.map(event => event.start.getTime()))).tz(timeZone)
+          min = moment(Math.min(...overlapped.map(event => event.start.getTime()))).tz(timeZone)
               .subtract(defaultDurationMinutes, 'minutes');
         }
         if (Math.abs(min.diff(adjustedDateUnderCursor, 'minutes')) <= defaultDurationMinutes) {
@@ -875,31 +876,52 @@ const Calendar = ({
     handleDeleteWeeklyRecurringSlotClick, maxHour, slots, timeZone, topHandleHeight, weeklyRecurringSlots
   ]);
 
+  const renderedDayHeaders = useMemo(() =>
+    columnDates.map((date) => {
+      const startOfDay = moment(date).tz(timeZone).startOf('days');
+      const eventsOfTheDay = !events ? [] : events
+          .filter(event => event) // HACK hot reloader throws an error
+          .filter(event => startOfDay.isSame(moment(event.start).tz(timeZone), 'days'));
+
+      return (
+        <div key={date} style={{width: dayWidth, minWidth: dayWidth, maxWidth: dayWidth}}>
+          {calendarType === CalendarType.SPECIFIC ? (<>
+            {DayHeader ? (
+              <DayHeader key={date} date={date} events={eventsOfTheDay} calendarView={calendarView} />
+            ) : (<>
+              <div style={{textAlign: 'center'}}>{moment(date).tz(timeZone).format('ddd D')}</div>
+              {eventsOfTheDay.some(event => !event.allDay) && (
+                <div className='calendar__header__day__has-event'>&nbsp;</div>
+              )}
+            </>)}
+
+            {eventsOfTheDay
+              .filter(event => event.allDay)
+              .filter(event => moment(date).tz(timeZone).isSame(moment(event.start).tz(timeZone), 'days'))
+              .map((event, index) => (
+                <div key={index} className='calendar__header__event' title={event.summary}>
+                  {event.summary}
+                </div>
+              ))
+            }
+          </>) : calendarView !== CalendarView.SINGLE_DAY /* single day has no header */ ? (<>
+            {DayHeader ? (
+              <DayHeader key={date} date={date} events={eventsOfTheDay} calendarView={calendarView} />
+            ) : (
+              <span style={{textAlign: 'center'}}>{moment(date).tz(timeZone).format('ddd')}</span>
+            )}
+          </>) : null}
+        </div>
+      )
+  }), [DayHeader, calendarType, calendarView, columnDates, dayWidth, events, timeZone]);
+
   return (
       <div className={`calendar__container ${className || ''}`} style={style} ref={containerRef}>
 
         <div className='calendar__header'>
           <div className='calendar__header__left-spacer'
                style={{ width: hoursContainerWidth, minWidth: hoursContainerWidth }}/>
-          {columnDates.map(date => (
-              <div key={date} style={{ width: dayWidth, minWidth: dayWidth, maxWidth: dayWidth }}>
-                {calendarType === CalendarType.SPECIFIC ? (<>
-                  <span style={{ textAlign: 'center' }}>{moment(date).tz(timeZone).format('ddd D')}</span>
-                  { events && events
-                      .filter(event => event) // HACK hot reloader throws an error
-                      .filter(event => event.allDay)
-                      .filter(event => moment(date).tz(timeZone).isSame(moment(event.start).tz(timeZone), 'days'))
-                      .map((event, index) => (
-                          <div key={index} className='calendar__header__event' title={event.summary}>
-                            {event.summary}
-                          </div>
-                      ))
-                  }
-                </>) : calendarView !== CalendarView.SINGLE_DAY ? (
-                    <span style={{ textAlign: 'center' }}>{moment(date).tz(timeZone).format('ddd')}</span>
-                ) : null}
-              </div>
-          ))}
+          {columnDates.map((date, index) => renderedDayHeaders[index])}
           <div style={{ width: scrollbarWidth, minWidth: scrollbarWidth }}/>
         </div>
 
