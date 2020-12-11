@@ -230,7 +230,7 @@ const Calendar = ({
    * returns true if there's a collision
    * @type {function(*=, *=): (boolean)}
    */
-  const overlaps = useCallback((start, end) => {
+  const doesOverlap = useCallback((start, end) => {
     return findOverlapping(start, end).length > 0;
   }, [findOverlapping]);
 
@@ -306,7 +306,7 @@ const Calendar = ({
           if (newEnd.diff(newStart, 'minutes') < minEventDurationMinutes) {
             return prev;
           }
-          if (overlaps(newStart.toDate(), newEnd.toDate())) {
+          if (doesOverlap(newStart.toDate(), newEnd.toDate())) {
             return prev;
           }
           return {
@@ -330,7 +330,7 @@ const Calendar = ({
             newStart = maxStart;
           }
           const newEnd = moment(newStart).add(durationMinutes, 'minutes');
-          if (overlaps(newStart.toDate(), newEnd.toDate())) {
+          if (doesOverlap(newStart.toDate(), newEnd.toDate())) {
             return prev;
           }
           return {
@@ -354,7 +354,7 @@ const Calendar = ({
           if (moment(prev.end).diff(newStart, 'minutes') < minEventDurationMinutes) {
             return prev;
           }
-          if (overlaps(newStart.toDate(), prev.end)) {
+          if (doesOverlap(newStart.toDate(), prev.end)) {
             return prev;
           }
           return {
@@ -377,7 +377,7 @@ const Calendar = ({
           if (moment(newEnd).diff(prev.start, 'minutes') < minEventDurationMinutes) {
             return prev;
           }
-          if (overlaps(prev.start, newEnd.toDate())) {
+          if (doesOverlap(prev.start, newEnd.toDate())) {
             return prev;
           }
           return {
@@ -415,7 +415,7 @@ const Calendar = ({
             // check again if it fits with the new start
             const newStart = min.clone();
             const newEnd = min.clone().add(defaultDurationMinutes, 'minutes');
-            if (overlaps(newStart.toDate(), newEnd.toDate())) return;
+            if (doesOverlap(newStart.toDate(), newEnd.toDate())) return;
             setDragIndicator({
               start: newStart.toDate(),
               end: newEnd.toDate()
@@ -427,7 +427,7 @@ const Calendar = ({
         if (adjustedMinutesUnderCursor >= maxHour * 60 - defaultDurationMinutes) {
           const newStart = columnDate.clone().add(maxHour * 60 - defaultDurationMinutes, 'minutes');
           const newEnd = columnDate.clone().add(maxHour * 60, 'minutes');
-          if (overlaps(newStart.toDate(), newEnd.toDate())) return;
+          if (doesOverlap(newStart.toDate(), newEnd.toDate())) return;
           setDragIndicator({
             start: newStart.toDate(),
             end: newEnd.toDate()
@@ -443,7 +443,7 @@ const Calendar = ({
     }
   }, [
     hoursToPixels, maxHour, minHour, hoursContainerWidth, dayWidth, columnDates, pixelsToMinutes, step, editionMode,
-    defaultDurationMinutes, overlaps, timeZone, minEventDurationMinutes, calendarType, findOverlapping, someEventOrSlotAtDate
+    defaultDurationMinutes, doesOverlap, timeZone, minEventDurationMinutes, calendarType, findOverlapping, someEventOrSlotAtDate
   ]);
 
   const handleMouseDown = useCallback(e => {
@@ -561,7 +561,7 @@ const Calendar = ({
           // check again if it fits with the new start
           const newStart = min.clone();
           const newEnd = min.clone().add(defaultDurationMinutes, 'minutes');
-          if (overlaps(newStart.toDate(), newEnd.toDate())) return;
+          if (doesOverlap(newStart.toDate(), newEnd.toDate())) return;
           dragContextRef.current = {
             action: DragAction.CREATE,
             date: newStart.toDate(),
@@ -578,7 +578,7 @@ const Calendar = ({
       if (adjustedMinutesUnderCursor >= maxHour * 60 - defaultDurationMinutes) {
         const newStart = columnDate.clone().add(maxHour * 60 - defaultDurationMinutes, 'minutes');
         const newEnd = columnDate.clone().add(maxHour * 60, 'minutes');
-        if (overlaps(newStart.toDate(), newEnd.toDate())) return;
+        if (doesOverlap(newStart.toDate(), newEnd.toDate())) return;
         dragContextRef.current = {
           action: DragAction.CREATE,
           date: newStart.toDate(),
@@ -642,7 +642,7 @@ const Calendar = ({
   }, [
     editionMode, hoursContainerWidth, dayWidth, columnDates, hoursToPixels, maxHour, minHour, pixelsToMinutes, step, events,
     calendarType, calcTop, timeZone, minEventHeight, topHandleHeight, bottomHandleHeight, defaultDurationMinutes, slots,
-    weeklyRecurringSlots, overlaps, findEventAtDate, findSlotAtDate, findRecurringSlotAtDate, findOverlapping
+    weeklyRecurringSlots, doesOverlap, findEventAtDate, findSlotAtDate, findRecurringSlotAtDate, findOverlapping
   ]);
 
   const handleMouseUp = useCallback(e => {
@@ -919,8 +919,7 @@ const Calendar = ({
       <div className={`calendar__container ${className || ''}`} style={style} ref={containerRef}>
 
         <div className='calendar__header'>
-          <div className='calendar__header__left-spacer'
-               style={{ width: hoursContainerWidth, minWidth: hoursContainerWidth }}/>
+          <div style={{ width: hoursContainerWidth, minWidth: hoursContainerWidth }}/>
           {columnDates.map((date, index) => renderedDayHeaders[index])}
           <div style={{ width: scrollbarWidth, minWidth: scrollbarWidth }}/>
         </div>
