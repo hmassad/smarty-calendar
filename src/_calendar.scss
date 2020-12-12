@@ -103,11 +103,6 @@
     padding-left: 2px;
 }
 
-.calendar__content__day__event {
-    left: 5px;
-    right: 5px;
-}
-
 .calendar__content__day__event__dragging, .calendar__content__day__slot__dragging, .calendar__content__day__indicator__dragging {
     position: absolute;
     z-index: 500;
