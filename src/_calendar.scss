@@ -1,3 +1,5 @@
+@import '_variables.scss';
+
 .calendar__container {
     user-select: none; /* prevent text selection */
 
@@ -9,10 +11,10 @@
     height: 100%;
     overflow-x: hidden;
     overflow-y: hidden;
-}
 
-.calendar__container *, *:before, *:after {
-    box-sizing: inherit;
+    & *, *:before, *:after {
+        box-sizing: inherit;
+    }
 }
 
 .calendar__header {
@@ -68,30 +70,27 @@
     pointer-events: none;
     position: absolute;
     width: 100%;
-    border-bottom: 1px solid #DDDDDD;
-    border-right: 1px solid #DDDDDD;
+    border-bottom: 1px solid $color-black-20;
+    border-right: 1px solid $color-black-20;
     box-sizing: border-box;
     z-index: 0;
 }
 
 .calendar__content__day__grid:first-child {
-    border-top: 1px solid #DDDDDD;
+    border-top: 1px solid $color-black-20;
 }
 
 .calendar__content__day__grid.today {
-    background-color: #bfcde0;
+    background-color: $bg-light-blue-2;
 }
 
 .calendar__header__event {
     font-size: 12px;
-    background-color: #D5C6E0;
-    color: black;
     border-radius: 4px;
 }
 
 .calendar__content__day__event, .calendar__content__day__slot {
     position: absolute;
-    z-index: 1;
     left: 0;
     right: 0;
     font-size: 12px;
@@ -101,13 +100,11 @@
     text-overflow: ellipsis;
     display: flex;
     flex-direction: column;
+    padding-left: 2px;
 }
 
 .calendar__content__day__event {
-    z-index: 2;
-    background-color: rgb(159, 225, 231); /* read from events */
-    color: #05283A; /* read from events */
-    border-left: 4px solid rgb(127, 180, 185); /* read from events */
+    left: 5px;
     right: 5px;
 }
 
@@ -123,28 +120,6 @@
     opacity: 75%;
     left: 0;
     right: 0;
-}
-
-.calendar__content__day__slot {
-    background-color: #FF00813F; /* read from events */
-    color: white; /* read from events */
-    border-left: 4px solid #FF00813F; /* read from events */
-}
-
-.calendar__content__day__event__dragging {
-    right: 5px;
-    background-color: #CC2936;
-    color: white;
-}
-
-.calendar__content__day__slot__dragging {
-    background-color: #05283A;
-    color: white;
-}
-
-.calendar__content__day__indicator__dragging {
-    background-color: #FFC700;
-    color: white;
 }
 
 .calendar__content__day__current-time {

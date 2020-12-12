@@ -1,0 +1,117 @@
+/*primary*/
+$color-primary: #FF0081;
+$color-primary-80: rgba(255, 0, 129, 0.8);
+$color-primary-60: #FF66B3;
+$color-primary-40: #FF99CD;
+$color-primary-20: rgba(255, 0, 129, 0.2);
+
+/*hover / focus*/
+$color-primary-hover: #D3066E;
+$color-blue-hover: #2698D9;
+$color-dark-blue-hover: #04669d;
+$color-border-focus: #BFDBEA;
+
+
+/*secondary*/
+$color-secondary-purple: #695CFC;
+$color-secondary-blue: #4ABAF9;
+$color-secondary-dark-blue: #0884CA;
+$color-secondary-blue-light: #E8F7FF;
+$color-secondary-green: #64D94E;
+
+
+$color-black: #000000;
+$color-black-80: #333333;
+$color-black-60: #666666;
+$color-black-40: #999999;
+$color-black-20: #CCCCCC;
+
+/*complementary*/
+$color-attention: #FFC700;
+$color-error: #CF1E1E;
+$color-success: #70D82B;
+$color-divider: #E1E1F3;
+$color-divider-light: #EBF3F8;
+$color-border: #DCF2FE;
+$color-matisse: #1E678F;
+$color-white: #FFFFFF;
+
+/*background*/
+$bg-light-blue: #F6FCFF;
+$bg-light-blue-2: #F0F7FB;
+$bg-light-white: #FFFFFF;
+$bg-light-input: #FAFAFA;
+$bg-dark: #020D15;
+
+/*type colors */
+$text-primary: #05283A;
+$text-secondary: #B4B4B4;
+$text-disabled: #9FA3A6;
+
+$main-colors: (
+        primary: $color-primary,
+        secondary-purple: $color-secondary-purple,
+        secondary-blue: $color-secondary-blue,
+        secondary-green: $color-secondary-green,
+        mattise: $color-matisse,
+        attention: $color-attention,
+        text-primary: $text-primary,
+        text-secondary: $text-secondary,
+        text-disabled: $text-disabled,
+        error: $color-error
+) !default;
+
+//Text
+$base-font-size: 16px;
+$popup-font-size: 11px;
+
+$xxxs: 8px;
+$xxs: 10px;
+$xs: 12px;
+$sm: 14px;
+$normal: 16px;
+$lg: 18px;
+$xl: 20px;
+
+$text-font-sizes: (
+        xxxs: $xxxs,
+        xxs: $xxs,
+        xs: $xs,
+        sm: $sm,
+        normal: $normal,
+        lg: $lg,
+        xl: $xl
+) !default;
+
+$heading-font-sizes: (
+        h6: 12px,
+        h5: 14px,
+        h4: 16px,
+        h3: 36px,
+        h2: 48px,
+        h1: 72px
+) !default;
+
+$heading-font-weights: (
+        h6: 600,
+        h5: 500,
+        h4: 500,
+        h3: 400,
+        h2: 300,
+        h1: 400
+) !default;
+
+$spaces: (
+        0: 0!important,
+        1: 4px,
+        2: 8px,
+        3: 12px,
+        4: 16px,
+        5: 20px,
+        6: 24px,
+        7: 28px,
+        8: 32px,
+        9: 36px,
+        10: 40px,
+        auto: auto
+) !default;

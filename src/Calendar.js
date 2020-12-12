@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import moment from 'moment-timezone';
-import './Calendar.css';
+import './_calendar.scss';
 import {checkCollision, isSameDay, isToday} from './dateUtils';
 import {nearestNumber} from './numberUtils';
 
@@ -69,7 +69,13 @@ const Calendar = ({
                     hoursContainerWidth = 40,
                     className,
                     style,
-                    DayHeader
+                    DayHeader,
+                    defaultEventColor = '#05283A',
+                    defaultEventBgColor = '#DBF1FE',
+                    defaultEventBorderColor = '#4ABAF9',
+                    slotColor = '#05283A',
+                    slotBgColor = '#FF99CD',
+                    slotBorderColor = '#D3066E'
                   }) => {
 
   const columnDates = useMemo(() => {
@@ -759,36 +765,46 @@ const Calendar = ({
           .filter(event =>
               !moment(event.start).tz(timeZone).isSame(moment(event.end).tz(timeZone), 'days') ||
               moment(event.start).tz(timeZone).hours() <= maxHour)
-          .map((event, index) => (
-              <div key={index} className='calendar__content__day__event' style={{
-                top: calcTop(event.start),
-                height: calcHeight(event.start, event.end),
-                pointerEvents: editionMode !== EditionMode.EVENTS ? 'none' : 'auto'
-              }} title={event.summary}
+          .map((event, index) => {
+            const doesOverlap_ = slots && slots.some(slot => checkCollision(slot.start, slot.end, event.start, event.end));
+            return (
+              <div key={index} className='calendar__content__day__event' title={event.summary}
+                   style={{
+                     top: calcTop(event.start),
+                     height: calcHeight(event.start, event.end),
+                     color: event.color || defaultEventColor,
+                     backgroundColor: event.bgColor || defaultEventBgColor,
+                     borderLeft: `4px solid ${event.borderColor || defaultEventBorderColor}`,
+                     opacity: editionMode === EditionMode.EVENTS ? 1 : .75,
+                     right: doesOverlap_ ? 40 : 0,
+                     zIndex: editionMode === EditionMode.EVENTS ? 400 : 1,
+                     pointerEvents: editionMode !== EditionMode.EVENTS ? 'none' : 'auto'
+                   }}
               >
                 {editionMode === EditionMode.EVENTS ? (<>
-                  <div style={{ height: topHandleHeight, cursor: 'n-resize' }}/>
-                  <div style={{ flex: 1, cursor: 'move' }}>
+                  <div style={{height: topHandleHeight, cursor: 'n-resize'}}/>
+                  <div style={{flex: 1, cursor: 'move'}}>
                     {moment(event.start).tz(timeZone).format('h:mma')} - {moment(event.end).tz(timeZone).format('h:mma')}<br/>
                     {event.summary}
                   </div>
-                  <div style={{ height: bottomHandleHeight, cursor: 's-resize' }}/>
+                  <div style={{height: bottomHandleHeight, cursor: 's-resize'}}/>
                   <div onClick={() => handleDeleteEventClick(event)}
-                       style={{ position: 'absolute', top: 0, right: 0, cursor: 'pointer' }}>
+                       style={{position: 'absolute', top: 0, right: 0, cursor: 'pointer'}}>
                     ❌
                   </div>
                 </>) : (
-                    <div style={{ flex: 1 }}>
-                      {moment(event.start).tz(timeZone).format('h:mma')} - {moment(event.end).tz(timeZone).format('h:mma')}<br/>
-                      {event.summary}
-                    </div>
+                  <div style={{flex: 1}}>
+                    {moment(event.start).tz(timeZone).format('h:mma')} - {moment(event.end).tz(timeZone).format('h:mma')}<br/>
+                    {event.summary}
+                  </div>
                 )}
               </div>
-          ));
+            )
+          });
     });
   }, [
     bottomHandleHeight, calcHeight, calcTop, calendarType, editionMode, columnDates, dragOriginalEvent, events, handleDeleteEventClick,
-    maxHour, timeZone, topHandleHeight
+    maxHour, timeZone, topHandleHeight, defaultEventColor, defaultEventBgColor, defaultEventBorderColor, slots
   ]);
 
   const renderedSlots = useMemo(() => {
@@ -808,6 +824,11 @@ const Calendar = ({
                   <div key={index} className='calendar__content__day__slot' style={{
                     top: calcTop(startOfDay.clone().add(slot.startMinutes, 'minutes')),
                     height: calcHeight(startOfDay.clone().add(slot.startMinutes, 'minutes'), startOfDay.clone().add(slot.endMinutes, 'minutes')),
+                    color: slotColor,
+                    backgroundColor: slotBgColor,
+                    borderLeft: `4px solid ${slotBorderColor}`,
+                    left: 0,
+                    right: 0,
                     pointerEvents: editionMode !== EditionMode.SLOTS ? 'none' : 'auto'
                   }}>
                     {editionMode === EditionMode.SLOTS ? (<>
@@ -825,8 +846,8 @@ const Calendar = ({
                     </>) : (
                         <div style={{ flex: 1 }}>
                           {startOfDay.clone().add(slot.startMinutes, 'minutes').format('h:mma')}
-                          &nbsp;-&nbsp;
-                          {startOfDay.clone().add(slot.endMinutes, 'minutes').format('h:mma')}
+                          &nbsp;-
+                          &nbsp;{startOfDay.clone().add(slot.endMinutes, 'minutes').format('h:mma')}
                         </div>
                     )}
                   </div>
@@ -846,34 +867,44 @@ const Calendar = ({
               .filter(slot =>
                   !moment(slot.start).tz(timeZone).isSame(moment(slot.end).tz(timeZone), 'days') ||
                   moment(slot.start).tz(timeZone).hours() <= maxHour)
-              .map((slot, index) => (
+              .map((slot, index) => {
+                const doesOverlap_ = events && events.some(event => checkCollision(event.start, event.end, slot.start, slot.end));
+                return (
                   <div key={index} className='calendar__content__day__slot' style={{
                     top: calcTop(slot.start),
                     height: calcHeight(slot.start, slot.end),
+                    color: slotColor,
+                    backgroundColor: slotBgColor,
+                    borderRight: `4px solid ${slotBorderColor}`,
+                    opacity: editionMode === EditionMode.SLOTS ? 1 : .75,
+                    left: doesOverlap_ ? 40 : 0,
+                    zIndex: editionMode === EditionMode.SLOTS ? 400 : 1,
                     pointerEvents: editionMode !== EditionMode.SLOTS ? 'none' : 'auto'
                   }}>
                     {editionMode === EditionMode.SLOTS ? (<>
-                      <div style={{ height: topHandleHeight, cursor: 'n-resize' }}/>
-                      <div style={{ flex: 1, cursor: 'move' }}>
+                      <div style={{height: topHandleHeight, cursor: 'n-resize'}}/>
+                      <div style={{flex: 1, cursor: 'move'}}>
                         {moment(slot.start).tz(timeZone).format('h:mma')} - {moment(slot.end).tz(timeZone).format('h:mma')}
                       </div>
-                      <div style={{ height: bottomHandleHeight, cursor: 's-resize' }}/>
+                      <div style={{height: bottomHandleHeight, cursor: 's-resize'}}/>
                       <div onClick={() => handleDeleteSlotClick(slot)}
-                           style={{ position: 'absolute', top: 0, right: 0, cursor: 'pointer' }}>
+                           style={{position: 'absolute', top: 0, right: 0, cursor: 'pointer'}}>
                         ❌
                       </div>
                     </>) : (
-                        <div style={{ flex: 1 }}>
-                          {moment(slot.start).tz(timeZone).format('h:mma')} - {moment(slot.end).tz(timeZone).format('h:mma')}
-                        </div>
+                      <div style={{flex: 1}}>
+                        {moment(slot.start).tz(timeZone).format('h:mma')} - {moment(slot.end).tz(timeZone).format('h:mma')}
+                      </div>
                     )}
                   </div>
-              ));
+                );
+              });
         });
     }
   }, [
     bottomHandleHeight, calcHeight, calcTop, calendarType, columnDates, dragOriginalEvent, editionMode, handleDeleteSlotClick,
-    handleDeleteWeeklyRecurringSlotClick, maxHour, slots, timeZone, topHandleHeight, weeklyRecurringSlots
+    handleDeleteWeeklyRecurringSlotClick, maxHour, slots, timeZone, topHandleHeight, weeklyRecurringSlots,
+    slotColor, slotBgColor, slotBorderColor, events
   ]);
 
   const renderedDayHeaders = useMemo(() =>
@@ -882,12 +913,15 @@ const Calendar = ({
       const eventsOfTheDay = !events ? [] : events
           .filter(event => event) // HACK hot reloader throws an error
           .filter(event => startOfDay.isSame(moment(event.start).tz(timeZone), 'days'));
+      const slotsOfTheDay = !slots ? [] : slots
+        .filter(slot => slot) // HACK hot reloader throws an error
+        .filter(slot => startOfDay.isSame(moment(slot.start).tz(timeZone), 'days'));
 
       return (
         <div key={date} style={{width: dayWidth, minWidth: dayWidth, maxWidth: dayWidth}}>
           {calendarType === CalendarType.SPECIFIC ? (<>
             {DayHeader ? (
-              <DayHeader key={date} date={date} events={eventsOfTheDay} calendarView={calendarView} />
+              <DayHeader key={date} date={date} timeZone={timeZone} events={eventsOfTheDay} slots={slotsOfTheDay} calendarType={calendarType} />
             ) : (<>
               <div style={{textAlign: 'center'}}>{moment(date).tz(timeZone).format('ddd D')}</div>
               {eventsOfTheDay.some(event => !event.allDay) && (
@@ -899,21 +933,29 @@ const Calendar = ({
               .filter(event => event.allDay)
               .filter(event => moment(date).tz(timeZone).isSame(moment(event.start).tz(timeZone), 'days'))
               .map((event, index) => (
-                <div key={index} className='calendar__header__event' title={event.summary}>
+                <div key={index} className='calendar__header__event' title={event.summary}
+                  style={{
+                    color: event.color || defaultEventColor,
+                    backgroundColor: event.bgColor || defaultEventBgColor,
+                    borderLeft: `4px solid ${event.borderColor || defaultEventBorderColor}`
+                }}>
                   {event.summary}
                 </div>
               ))
             }
           </>) : calendarView !== CalendarView.SINGLE_DAY /* single day has no header */ ? (<>
             {DayHeader ? (
-              <DayHeader key={date} date={date} events={eventsOfTheDay} calendarView={calendarView} />
+              <DayHeader key={date} date={date} timeZone={timeZone} events={eventsOfTheDay} slots={slotsOfTheDay} calendarType={calendarType} />
             ) : (
               <span style={{textAlign: 'center'}}>{moment(date).tz(timeZone).format('ddd')}</span>
             )}
           </>) : null}
         </div>
       )
-  }), [DayHeader, calendarType, calendarView, columnDates, dayWidth, events, timeZone]);
+  }), [
+    DayHeader, calendarType, calendarView, columnDates, dayWidth, defaultEventBgColor,
+    defaultEventBorderColor, defaultEventColor, events, slots, timeZone
+  ]);
 
   return (
       <div className={`calendar__container ${className || ''}`} style={style} ref={containerRef}>
@@ -939,60 +981,70 @@ const Calendar = ({
           </div>
 
           {columnDates.map((date, index) => (
-              <div key={date} className='calendar__content__day'
-                   style={{
-                     width: dayWidth,
-                     minWidth: dayWidth,
-                     maxWidth: dayWidth,
-                     height: hoursToPixels(maxHour - minHour)
-                   }}>
-                {renderedDayEventContainer[index]}
-                {renderedSlots[index]}
-                {renderedEvents[index]}
+            <div key={date} className='calendar__content__day'
+               style={{
+                 width: dayWidth,
+                 minWidth: dayWidth,
+                 maxWidth: dayWidth,
+                 height: hoursToPixels(maxHour - minHour)
+               }}>
+              {renderedDayEventContainer[index]}
+              {renderedSlots[index]}
+              {renderedEvents[index]}
 
-                {/* dragged event */}
-                { dragContextRef.current.action !== DragAction.NONE &&
-                editionMode === EditionMode.EVENTS &&
-                dragEvent &&
-                isSameDay(dragEvent.start, date, timeZone) && (
-                    <div className='calendar__content__day__event__dragging' style={{
-                      top: calcTop(dragEvent.start),
-                      height: calcHeight(dragEvent.start, dragEvent.end)
-                    }}>
-                      {moment(dragEvent.start).tz(timeZone).format('h:mma')} - {moment(dragEvent.end).tz(timeZone).format('h:mma')}<br/>
-                      {dragEvent.summary}
-                    </div>
-                )}
+              {/* dragged event */}
+              { dragContextRef.current.action !== DragAction.NONE &&
+              editionMode === EditionMode.EVENTS &&
+              dragEvent &&
+              isSameDay(dragEvent.start, date, timeZone) && (
+                  <div className='calendar__content__day__event__dragging' style={{
+                    top: calcTop(dragEvent.start),
+                    height: calcHeight(dragEvent.start, dragEvent.end),
+                    color: dragEvent.color || defaultEventColor,
+                    backgroundColor: dragEvent.bgColor || defaultEventBgColor,
+                    borderLeft: `4px solid ${dragEvent.borderColor || defaultEventBorderColor}`,
+                  }}>
+                    {moment(dragEvent.start).tz(timeZone).format('h:mma')} - {moment(dragEvent.end).tz(timeZone).format('h:mma')}<br/>
+                    {dragEvent.summary}
+                  </div>
+              )}
 
-                {/* dragged slot */}
-                { dragContextRef.current.action !== DragAction.NONE &&
-                editionMode === EditionMode.SLOTS &&
-                dragEvent &&
-                isSameDay(dragEvent.start, date, timeZone) && (
-                    <div className='calendar__content__day__slot__dragging' style={{
-                      top: calcTop(dragEvent.start),
-                      height: calcHeight(dragEvent.start, dragEvent.end)
-                    }}>
-                      {moment(dragEvent.start).tz(timeZone).format('h:mma')} - {moment(dragEvent.end).tz(timeZone).format('h:mma')}<br/>
-                    </div>
-                )}
+              {/* dragged slot */}
+              { dragContextRef.current.action !== DragAction.NONE &&
+              editionMode === EditionMode.SLOTS &&
+              dragEvent &&
+              isSameDay(dragEvent.start, date, timeZone) && (
+                  <div className='calendar__content__day__slot__dragging' style={{
+                    top: calcTop(dragEvent.start),
+                    height: calcHeight(dragEvent.start, dragEvent.end),
+                    color: slotColor,
+                    backgroundColor: slotBgColor,
+                    borderRight: `4px solid ${slotBorderColor}`,
+                    pointerEvents: editionMode !== EditionMode.SLOTS ? 'none' : 'auto',
+                  }}>
+                    {moment(dragEvent.start).tz(timeZone).format('h:mma')} - {moment(dragEvent.end).tz(timeZone).format('h:mma')}<br/>
+                  </div>
+              )}
 
-                {/* indicator slot */}
-                { dragContextRef.current.action === DragAction.NONE &&
-                dragIndicator &&
-                isSameDay(dragIndicator.start, date, timeZone) && (
-                    <div className='calendar__content__day__indicator__dragging' style={{
-                      top: calcTop(dragIndicator.start),
-                      height: calcHeight(dragIndicator.start, dragIndicator.end)
-                    }}>
-                      {moment(dragIndicator.start).tz(timeZone).format('h:mma')} - {moment(dragIndicator.end).tz(timeZone).format('h:mma')}<br/>
-                    </div>
-                )}
+              {/* indicator */}
+              { dragContextRef.current.action === DragAction.NONE &&
+              dragIndicator &&
+              isSameDay(dragIndicator.start, date, timeZone) && (
+                  <div className='calendar__content__day__indicator__dragging' style={{
+                    top: calcTop(dragIndicator.start),
+                    height: calcHeight(dragIndicator.start, dragIndicator.end),
+                    color: editionMode === EditionMode.EVENTS ? defaultEventColor : slotColor,
+                    backgroundColor: editionMode === EditionMode.EVENTS ? defaultEventBgColor : slotBgColor,
+                    opacity: .5
+                  }}>
+                    {moment(dragIndicator.start).tz(timeZone).format('h:mma')} - {moment(dragIndicator.end).tz(timeZone).format('h:mma')}<br/>
+                  </div>
+              )}
 
-                {isToday(date, timeZone) && nowTop ? (<>
-                  <div className='calendar__content__day__current-time' style={{ top: nowTop }}/>
-                </>) : null}
-              </div>
+              {isToday(date, timeZone) && nowTop ? (<>
+                <div className='calendar__content__day__current-time' style={{ top: nowTop }}/>
+              </>) : null}
+            </div>
           ))}
         </div>
       </div>
