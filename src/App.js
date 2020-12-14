@@ -19,6 +19,18 @@ const DayHeader = ({date, timeZone, events, slots, calendarType}) => {
   );
 }
 
+const AllDayEvent = ({date, event, timeZone}) => {
+  return (
+    JSON.stringify(event)
+  )
+}
+
+const Event = ({date, event, timeZone}) => {
+  return (
+    JSON.stringify(event)
+  )
+}
+
 const googleColors = {
   "calendar": {
     "1": {
@@ -171,9 +183,9 @@ const App = () => {
   const [timeZone] = useState('America/Argentina/Buenos_Aires');
   const [currentDate, setCurrentDate] = useState(moment().tz(timeZone));
 
-  const [calendarType, setCalendarType] = useState(CalendarType.SPECIFIC);
+  const [calendarType, setCalendarType] = useState(CalendarType.GENERIC);
   const [calendarView, setCalendarView] = useState(CalendarView.WEEK);
-  const [editionMode, setEditionMode] = useState(EditionMode.EVENTS);
+  const [editionMode, setEditionMode] = useState(EditionMode.SLOTS);
 
   const [events, setEvents] = useState(() => {
     const today = moment().tz(timeZone).startOf('days');
@@ -369,7 +381,9 @@ const App = () => {
         onChangeWeeklyRecurringSlot={handleChangeWeeklyRecurringSlot}
         onDeleteWeeklyRecurringSlot={handleDeleteWeeklyRecurringSlot}
         pixelsPerHour={50} minHour={0} maxHour={24}
-        DayHeader={DayHeader}
+        // DayHeaderTemplate={DayHeader}
+        // AllDayEventTemplate={AllDayEvent}
+        // EventTemplate={Event}
       />
       <div>footer</div>
     </div>
