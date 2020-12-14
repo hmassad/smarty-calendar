@@ -87,11 +87,11 @@ const Calendar = ({
           return [moment(GENERIC_DATE).tz(timeZone).startOf('days')];
         case CalendarView.WORK_WEEK:
           return Array.from({ length: 5 })
-              .map((_, i) => moment(GENERIC_DATE).tz(timeZone).startOf('weeks').add(i + 1, 'days'));
+            .map((_, i) => moment(GENERIC_DATE).tz(timeZone).startOf('weeks').add(i + 1, 'days'));
         case CalendarView.WEEK:
         default:
           return Array.from({ length: 7 })
-              .map((_, i) => moment(GENERIC_DATE).tz(timeZone).startOf('weeks').add(i, 'days'));
+            .map((_, i) => moment(GENERIC_DATE).tz(timeZone).startOf('weeks').add(i, 'days'));
       }
     } else {
       switch (calendarView) {
@@ -99,14 +99,14 @@ const Calendar = ({
           return [moment(currentDate).tz(timeZone).startOf('days')];
         case CalendarView.THREE_DAYS:
           return Array.from({ length: 3 })
-              .map((_, i) => moment(currentDate).tz(timeZone).startOf('days').add(i, 'days'));
+            .map((_, i) => moment(currentDate).tz(timeZone).startOf('days').add(i, 'days'));
         case CalendarView.WORK_WEEK:
           return Array.from({ length: 5 })
-              .map((_, i) => moment(currentDate).tz(timeZone).startOf('weeks').add(i + 1, 'days'));
+            .map((_, i) => moment(currentDate).tz(timeZone).startOf('weeks').add(i + 1, 'days'));
         case CalendarView.WEEK:
         default:
           return Array.from({ length: 7 })
-              .map((_, i) => moment(currentDate).tz(timeZone).startOf('weeks').add(i, 'days'));
+            .map((_, i) => moment(currentDate).tz(timeZone).startOf('weeks').add(i, 'days'));
       }
     }
   }, [calendarType, calendarView, timeZone, currentDate]);
@@ -168,8 +168,8 @@ const Calendar = ({
     // calculate width of each day column
     // Math.floor(xxx - 1) to prevent round error that make the horizontal scrollbar visible
     setDayWidth(Math.max(
-        Math.floor((containerRef.current.clientWidth - hoursContainerWidth - scrollbarWidth - 1) / columnDates.length),
-        dayMinWidth
+      Math.floor((containerRef.current.clientWidth - hoursContainerWidth - scrollbarWidth - 1) / columnDates.length),
+      dayMinWidth
     ));
   }, [columnDates, dayMinWidth, hoursContainerWidth, scrollbarWidth]);
 
@@ -213,19 +213,19 @@ const Calendar = ({
         switch (calendarType) {
           case CalendarType.SPECIFIC:
             return slots && slots
-                .filter(slot => slot !== dragOriginalEvent)
-                .filter(slot => checkCollision(slot.start, slot.end, start, end));
+              .filter(slot => slot !== dragOriginalEvent)
+              .filter(slot => checkCollision(slot.start, slot.end, start, end));
           case CalendarType.GENERIC:
             return weeklyRecurringSlots && weeklyRecurringSlots
-                .filter(slot => slot !== dragOriginalEvent)
-                .filter(slot => {
-                  const startOfDay = moment(GENERIC_DATE).tz(timeZone).startOf('weeks').add(slot.dayOfWeek, 'days');
-                  return checkCollision(
-                      startOfDay.clone().add(slot.startMinutes, 'minutes').toDate(),
-                      startOfDay.clone().add(slot.endMinutes, 'minutes').toDate(),
-                      start,
-                      end);
-                });
+              .filter(slot => slot !== dragOriginalEvent)
+              .filter(slot => {
+                const startOfDay = moment(GENERIC_DATE).tz(timeZone).startOf('weeks').add(slot.dayOfWeek, 'days');
+                return checkCollision(
+                  startOfDay.clone().add(slot.startMinutes, 'minutes').toDate(),
+                  startOfDay.clone().add(slot.endMinutes, 'minutes').toDate(),
+                  start,
+                  end);
+              });
           default:
             return [];
         }
@@ -244,15 +244,15 @@ const Calendar = ({
 
   const findEventAtDate = useCallback((date) => {
     return events.find(event =>
-        !event.allDay &&
-        event.start.getTime() <= date.getTime() &&
-        event.end.getTime() >= date.getTime());
+      !event.allDay &&
+      event.start.getTime() <= date.getTime() &&
+      event.end.getTime() >= date.getTime());
   }, [events]);
 
   const findSlotAtDate = useCallback((date) => {
     return slots.find(slot =>
-        slot.start.getTime() <= date.getTime() &&
-        slot.end.getTime() >= date.getTime()
+      slot.start.getTime() <= date.getTime() &&
+      slot.end.getTime() >= date.getTime()
     );
   }, [slots]);
 
@@ -268,10 +268,10 @@ const Calendar = ({
 
   const someEventOrSlotAtDate = useCallback((date) => {
     return ((editionMode === EditionMode.SLOTS && (
-        (calendarType === CalendarType.SPECIFIC && findSlotAtDate(date)) ||
-        (calendarType === CalendarType.GENERIC && findRecurringSlotAtDate(date))
+      (calendarType === CalendarType.SPECIFIC && findSlotAtDate(date)) ||
+      (calendarType === CalendarType.GENERIC && findRecurringSlotAtDate(date))
     )) || (
-        editionMode === EditionMode.EVENTS && findEventAtDate(date)
+      editionMode === EditionMode.EVENTS && findEventAtDate(date)
     ));
   }, [calendarType, editionMode, findEventAtDate, findRecurringSlotAtDate, findSlotAtDate]);
 
@@ -309,8 +309,8 @@ const Calendar = ({
           // if point is lower than refDate (moving down), then start = refDate and end = point
           const point = moment(prev.start).tz(timeZone).startOf('days').add(adjustedMinutesUnderCursor, 'minutes');
           const [newStart, newEnd] = point.isBefore(refDate) ?
-              [point.clone(), refDate.clone().add(dragContextRef.current.offset, 'minutes')] :
-              [refDate.clone(), point.clone()];
+            [point.clone(), refDate.clone().add(dragContextRef.current.offset, 'minutes')] :
+            [refDate.clone(), point.clone()];
           if (newEnd.diff(newStart, 'minutes') < minEventDurationMinutes) {
             return prev;
           }
@@ -464,9 +464,9 @@ const Calendar = ({
     const left = e.clientX - calendarContentRect.left - hoursContainerWidth;
     // discard clicks outside calendarContentRef
     if (e.clientX < calendarContentRect.left ||
-        e.clientX > calendarContentRect.right ||
-        e.clientY < calendarContentRect.top ||
-        e.clientY > calendarContentRect.bottom) {
+      e.clientX > calendarContentRect.right ||
+      e.clientY < calendarContentRect.top ||
+      e.clientY > calendarContentRect.bottom) {
       return;
     }
     const top = e.clientY - calendarContentRect.top + calendarContentRef.current.scrollTop;
@@ -512,8 +512,8 @@ const Calendar = ({
     const startDraggingSpecificEventOrSlot = (eventOrSlotUnderCursor) => {
       const eventOrSlotTop = calcTop(eventOrSlotUnderCursor.start);
       const eventOrSlotBottom = moment(eventOrSlotUnderCursor.end).tz(timeZone).isSame(moment(eventOrSlotUnderCursor.start).tz(timeZone), 'days') ?
-          calcTop(eventOrSlotUnderCursor.end) :
-          hoursToPixels(maxHour - minHour);
+        calcTop(eventOrSlotUnderCursor.end) :
+        hoursToPixels(maxHour - minHour);
       const action = calculateAction(eventOrSlotTop, eventOrSlotBottom);
       // offset is used to make the dragging more natural, if you start from the middle, use the middle as a reference to move the event
       dragContextRef.current = {
@@ -532,8 +532,8 @@ const Calendar = ({
       const end = columnDate.clone().add(recurringSlotUnderCursor.endMinutes, 'minutes');
       const slotTop = calcTop(start.toDate());
       const slotBottom = start.isSame(end, 'days') ?
-          calcTop(end.toDate()) :
-          hoursToPixels(maxHour - minHour);
+        calcTop(end.toDate()) :
+        hoursToPixels(maxHour - minHour);
       const action = calculateAction(slotTop, slotBottom);
 
       // offset is used to make the dragging more natural
@@ -559,11 +559,11 @@ const Calendar = ({
         let min;
         if (calendarType === CalendarType.GENERIC) {
           min = columnDate.clone()
-              .add(Math.min(...overlapped.map(slot => slot.startMinutes)), 'minutes')
-              .subtract(defaultDurationMinutes, 'minutes');
+            .add(Math.min(...overlapped.map(slot => slot.startMinutes)), 'minutes')
+            .subtract(defaultDurationMinutes, 'minutes');
         } else {
           min = moment(Math.min(...overlapped.map(event => event.start.getTime()))).tz(timeZone)
-              .subtract(defaultDurationMinutes, 'minutes');
+            .subtract(defaultDurationMinutes, 'minutes');
         }
         if (Math.abs(min.diff(adjustedDateUnderCursor, 'minutes')) <= defaultDurationMinutes) {
           // check again if it fits with the new start
@@ -742,13 +742,13 @@ const Calendar = ({
   const renderedDayEventContainer = useMemo(() => {
     return columnDates.map(date => {
       return (
-          <>
-            {Array.from({ length: maxHour - minHour }).map((_, i) => minHour + i).map(hour => (
-                <div key={hour}
-                     className={`grid ${calendarView !== CalendarView.SINGLE_DAY && isToday(date, timeZone) ? 'today' : ''}`}
-                     style={{ top: hoursToPixels(hour - minHour), height: hoursToPixels(1) }}/>
-            ))}
-          </>
+        <>
+          {Array.from({ length: maxHour - minHour }).map((_, i) => minHour + i).map(hour => (
+            <div key={hour}
+                 className={`grid ${calendarView !== CalendarView.SINGLE_DAY && isToday(date, timeZone) ? 'today' : ''}`}
+                 style={{ top: hoursToPixels(hour - minHour), height: hoursToPixels(1) }}/>
+          ))}
+        </>
       );
     });
   }, [calendarView, columnDates, hoursToPixels, maxHour, minHour, timeZone]);
@@ -759,56 +759,56 @@ const Calendar = ({
       if (calendarType !== CalendarType.SPECIFIC) return null;
       const startOfDay = moment(date).tz(timeZone).startOf('days');
       return events
-          .filter(event => event) // HACK hot-reloader throws an error
-          .filter(event => !event.allDay)
-          .filter(event => !dragOriginalEvent || event !== dragOriginalEvent) // do not render event being dragged
-          .filter(event => startOfDay.isSame(moment(event.start).tz(timeZone), 'days'))
-          .filter(event => moment(event.start).tz(timeZone).hours() <= maxHour)
-          .filter(event =>
-              !moment(event.start).tz(timeZone).isSame(moment(event.end).tz(timeZone), 'days') ||
-              moment(event.start).tz(timeZone).hours() <= maxHour)
-          .map((event, index) => {
-            const doesOverlap_ = slots && slots.some(slot => checkCollision(slot.start, slot.end, event.start, event.end));
-            return (
-              <div key={index} className='event' title={event.summary}
-                   style={{
-                     top: calcTop(event.start),
-                     height: calcHeight(event.start, event.end),
-                     color: event.color || defaultEventColor,
-                     backgroundColor: event.bgColor || defaultEventBgColor,
-                     borderLeft: `4px solid ${event.borderColor || defaultEventBorderColor}`,
-                     opacity: editionMode === EditionMode.EVENTS ? 1 : .75,
-                     right: doesOverlap_ ? 40 : 0,
-                     zIndex: editionMode === EditionMode.EVENTS ? 400 : 1,
-                     pointerEvents: editionMode !== EditionMode.EVENTS ? 'none' : 'auto'
-                   }}
-              >
-                {editionMode === EditionMode.EVENTS ? (<>
-                  <div style={{height: topHandleHeight, cursor: 'n-resize'}}/>
-                  <div style={{flex: 1, cursor: 'move'}}>
-                    {EventTemplate ? (
-                      <EventTemplate event={event} date={date} timeZone={timeZone} />
-                    ) : (
-                      <>
-                        {moment(event.start).tz(timeZone).format('h:mma')} - {moment(event.end).tz(timeZone).format('h:mma')}<br/>
-                        {event.summary}
-                      </>
-                    )}
-                  </div>
-                  <div style={{height: bottomHandleHeight, cursor: 's-resize'}}/>
-                  <div onClick={() => handleDeleteEventClick(event)}
-                       style={{position: 'absolute', top: 0, right: 0, cursor: 'pointer'}}>
-                    ❌
-                  </div>
-                </>) : (
-                  <div style={{flex: 1}}>
-                    {moment(event.start).tz(timeZone).format('h:mma')} - {moment(event.end).tz(timeZone).format('h:mma')}<br/>
-                    {event.summary}
-                  </div>
-                )}
-              </div>
-            )
-          });
+        .filter(event => event) // HACK hot-reloader throws an error
+        .filter(event => !event.allDay)
+        .filter(event => !dragOriginalEvent || event !== dragOriginalEvent) // do not render event being dragged
+        .filter(event => startOfDay.isSame(moment(event.start).tz(timeZone), 'days'))
+        .filter(event => moment(event.start).tz(timeZone).hours() <= maxHour)
+        .filter(event =>
+          !moment(event.start).tz(timeZone).isSame(moment(event.end).tz(timeZone), 'days') ||
+          moment(event.start).tz(timeZone).hours() <= maxHour)
+        .map((event, index) => {
+          const doesOverlap_ = slots && slots.some(slot => checkCollision(slot.start, slot.end, event.start, event.end));
+          return (
+            <div key={index} className='event' title={event.summary}
+                 style={{
+                   top: calcTop(event.start),
+                   height: calcHeight(event.start, event.end),
+                   color: event.color || defaultEventColor,
+                   backgroundColor: event.bgColor || defaultEventBgColor,
+                   borderLeft: `4px solid ${event.borderColor || defaultEventBorderColor}`,
+                   opacity: editionMode === EditionMode.EVENTS ? 1 : .75,
+                   right: doesOverlap_ ? 40 : 0,
+                   zIndex: editionMode === EditionMode.EVENTS ? 400 : 1,
+                   pointerEvents: editionMode !== EditionMode.EVENTS ? 'none' : 'auto'
+                 }}
+            >
+              {editionMode === EditionMode.EVENTS ? (<>
+                <div style={{ height: topHandleHeight, cursor: 'n-resize' }}/>
+                <div style={{ flex: 1, cursor: 'move' }}>
+                  {EventTemplate ? (
+                    <EventTemplate event={event} date={date} timeZone={timeZone} />
+                  ) : (
+                    <>
+                      {moment(event.start).tz(timeZone).format('h:mma')} - {moment(event.end).tz(timeZone).format('h:mma')}<br/>
+                      {event.summary}
+                    </>
+                  )}
+                </div>
+                <div style={{ height: bottomHandleHeight, cursor: 's-resize' }}/>
+                <div onClick={() => handleDeleteEventClick(event)}
+                     style={{ position: 'absolute', top: 0, right: 0, cursor: 'pointer' }}>
+                  ❌
+                </div>
+              </>) : (
+                <div style={{ flex: 1 }}>
+                  {moment(event.start).tz(timeZone).format('h:mma')} - {moment(event.end).tz(timeZone).format('h:mma')}<br/>
+                  {event.summary}
+                </div>
+              )}
+            </div>
+          );
+        });
     });
   }, [
     bottomHandleHeight, calcHeight, calcTop, calendarType, editionMode, columnDates, dragOriginalEvent, events, handleDeleteEventClick,
@@ -824,42 +824,42 @@ const Calendar = ({
           // date is GENERIC_DATE
           const startOfDay = moment(date).tz(timeZone).startOf('days');
           return weeklyRecurringSlots
-              .filter(slot => slot) // HACK hot-reloader throws an error
-              .filter(slot => !dragOriginalEvent || slot !== dragOriginalEvent) // do not render slot being dragged
-              .filter(slot => startOfDay.weekday() === slot.dayOfWeek)
-              .filter(slot => startOfDay.clone().add(slot.startMinutes, 'minutes').hours() <= maxHour)
-              .map((slot, index) => (
-                  <div key={index} className='slot' style={{
-                    top: calcTop(startOfDay.clone().add(slot.startMinutes, 'minutes')),
-                    height: calcHeight(startOfDay.clone().add(slot.startMinutes, 'minutes'), startOfDay.clone().add(slot.endMinutes, 'minutes')),
-                    color: slotColor,
-                    backgroundColor: slotBgColor,
-                    borderRight: `4px solid ${slotBorderColor}`,
-                    left: 0,
-                    right: 0,
-                    pointerEvents: editionMode !== EditionMode.SLOTS ? 'none' : 'auto'
-                  }}>
-                    {editionMode === EditionMode.SLOTS ? (<>
-                      <div style={{ height: topHandleHeight, cursor: 'n-resize' }}/>
-                      <div style={{ flex: 1, cursor: 'move' }}>
-                        {startOfDay.clone().add(slot.startMinutes, 'minutes').format('h:mma')}
-                        &nbsp;-&nbsp;
-                        {startOfDay.clone().add(slot.endMinutes, 'minutes').format('h:mma')}
-                      </div>
-                      <div style={{ height: bottomHandleHeight, cursor: 's-resize' }}/>
-                      <div onClick={() => handleDeleteWeeklyRecurringSlotClick(slot)}
-                           style={{ position: 'absolute', top: 0, right: 0, cursor: 'pointer' }}>
-                        ❌
-                      </div>
-                    </>) : (
-                        <div style={{ flex: 1 }}>
-                          {startOfDay.clone().add(slot.startMinutes, 'minutes').format('h:mma')}
-                          &nbsp;-
-                          &nbsp;{startOfDay.clone().add(slot.endMinutes, 'minutes').format('h:mma')}
-                        </div>
-                    )}
+            .filter(slot => slot) // HACK hot-reloader throws an error
+            .filter(slot => !dragOriginalEvent || slot !== dragOriginalEvent) // do not render slot being dragged
+            .filter(slot => startOfDay.weekday() === slot.dayOfWeek)
+            .filter(slot => startOfDay.clone().add(slot.startMinutes, 'minutes').hours() <= maxHour)
+            .map((slot, index) => (
+              <div key={index} className='slot' style={{
+                top: calcTop(startOfDay.clone().add(slot.startMinutes, 'minutes')),
+                height: calcHeight(startOfDay.clone().add(slot.startMinutes, 'minutes'), startOfDay.clone().add(slot.endMinutes, 'minutes')),
+                color: slotColor,
+                backgroundColor: slotBgColor,
+                borderRight: `4px solid ${slotBorderColor}`,
+                left: 0,
+                right: 0,
+                pointerEvents: editionMode !== EditionMode.SLOTS ? 'none' : 'auto'
+              }}>
+                {editionMode === EditionMode.SLOTS ? (<>
+                  <div style={{ height: topHandleHeight, cursor: 'n-resize' }}/>
+                  <div style={{ flex: 1, cursor: 'move' }}>
+                    {startOfDay.clone().add(slot.startMinutes, 'minutes').format('h:mma')}
+                    &nbsp;-&nbsp;
+                    {startOfDay.clone().add(slot.endMinutes, 'minutes').format('h:mma')}
                   </div>
-              ));
+                  <div style={{ height: bottomHandleHeight, cursor: 's-resize' }}/>
+                  <div onClick={() => handleDeleteWeeklyRecurringSlotClick(slot)}
+                       style={{ position: 'absolute', top: 0, right: 0, cursor: 'pointer' }}>
+                    ❌
+                  </div>
+                </>) : (
+                  <div style={{ flex: 1 }}>
+                    {startOfDay.clone().add(slot.startMinutes, 'minutes').format('h:mma')}
+                    &nbsp;-
+                    &nbsp;{startOfDay.clone().add(slot.endMinutes, 'minutes').format('h:mma')}
+                  </div>
+                )}
+              </div>
+            ));
         });
       case CalendarType.SPECIFIC:
       default:
@@ -868,45 +868,45 @@ const Calendar = ({
           if (!slots) return null;
           const startOfDay = moment(date).tz(timeZone).startOf('days');
           return slots
-              .filter(slot => slot) // HACK hot-reloader throws an error
-              .filter(slot => !dragOriginalEvent || slot !== dragOriginalEvent) // do not render slot being dragged
-              .filter(slot => startOfDay.isSame(moment(slot.start).tz(timeZone), 'days'))
-              .filter(slot => moment(slot.start).tz(timeZone).hours() <= maxHour)
-              .filter(slot =>
-                  !moment(slot.start).tz(timeZone).isSame(moment(slot.end).tz(timeZone), 'days') ||
-                  moment(slot.start).tz(timeZone).hours() <= maxHour)
-              .map((slot, index) => {
-                const doesOverlap_ = events && events.some(event => checkCollision(event.start, event.end, slot.start, slot.end));
-                return (
-                  <div key={index} className='slot' style={{
-                    top: calcTop(slot.start),
-                    height: calcHeight(slot.start, slot.end),
-                    color: slotColor,
-                    backgroundColor: slotBgColor,
-                    borderRight: `4px solid ${slotBorderColor}`,
-                    opacity: editionMode === EditionMode.SLOTS ? 1 : .75,
-                    left: doesOverlap_ ? 40 : 0,
-                    zIndex: editionMode === EditionMode.SLOTS ? 400 : 1,
-                    pointerEvents: editionMode !== EditionMode.SLOTS ? 'none' : 'auto'
-                  }}>
-                    {editionMode === EditionMode.SLOTS ? (<>
-                      <div style={{height: topHandleHeight, cursor: 'n-resize'}}/>
-                      <div style={{flex: 1, cursor: 'move'}}>
-                        {moment(slot.start).tz(timeZone).format('h:mma')} - {moment(slot.end).tz(timeZone).format('h:mma')}
-                      </div>
-                      <div style={{height: bottomHandleHeight, cursor: 's-resize'}}/>
-                      <div onClick={() => handleDeleteSlotClick(slot)}
-                           style={{position: 'absolute', top: 0, right: 0, cursor: 'pointer'}}>
-                        ❌
-                      </div>
-                    </>) : (
-                      <div style={{flex: 1}}>
-                        {moment(slot.start).tz(timeZone).format('h:mma')} - {moment(slot.end).tz(timeZone).format('h:mma')}
-                      </div>
-                    )}
-                  </div>
-                );
-              });
+            .filter(slot => slot) // HACK hot-reloader throws an error
+            .filter(slot => !dragOriginalEvent || slot !== dragOriginalEvent) // do not render slot being dragged
+            .filter(slot => startOfDay.isSame(moment(slot.start).tz(timeZone), 'days'))
+            .filter(slot => moment(slot.start).tz(timeZone).hours() <= maxHour)
+            .filter(slot =>
+              !moment(slot.start).tz(timeZone).isSame(moment(slot.end).tz(timeZone), 'days') ||
+              moment(slot.start).tz(timeZone).hours() <= maxHour)
+            .map((slot, index) => {
+              const doesOverlap_ = events && events.some(event => checkCollision(event.start, event.end, slot.start, slot.end));
+              return (
+                <div key={index} className='slot' style={{
+                  top: calcTop(slot.start),
+                  height: calcHeight(slot.start, slot.end),
+                  color: slotColor,
+                  backgroundColor: slotBgColor,
+                  borderRight: `4px solid ${slotBorderColor}`,
+                  opacity: editionMode === EditionMode.SLOTS ? 1 : .75,
+                  left: doesOverlap_ ? 40 : 0,
+                  zIndex: editionMode === EditionMode.SLOTS ? 400 : 1,
+                  pointerEvents: editionMode !== EditionMode.SLOTS ? 'none' : 'auto'
+                }}>
+                  {editionMode === EditionMode.SLOTS ? (<>
+                    <div style={{ height: topHandleHeight, cursor: 'n-resize' }}/>
+                    <div style={{ flex: 1, cursor: 'move' }}>
+                      {moment(slot.start).tz(timeZone).format('h:mma')} - {moment(slot.end).tz(timeZone).format('h:mma')}
+                    </div>
+                    <div style={{ height: bottomHandleHeight, cursor: 's-resize' }}/>
+                    <div onClick={() => handleDeleteSlotClick(slot)}
+                         style={{ position: 'absolute', top: 0, right: 0, cursor: 'pointer' }}>
+                      ❌
+                    </div>
+                  </>) : (
+                    <div style={{ flex: 1 }}>
+                      {moment(slot.start).tz(timeZone).format('h:mma')} - {moment(slot.end).tz(timeZone).format('h:mma')}
+                    </div>
+                  )}
+                </div>
+              );
+            });
         });
     }
   }, [
@@ -919,21 +919,22 @@ const Calendar = ({
     columnDates.map((date) => {
       const startOfDay = moment(date).tz(timeZone).startOf('days');
       const eventsOfTheDay = !events ? [] : events
-          .filter(event => event) // HACK hot reloader throws an error
-          .filter(event => startOfDay.isSame(moment(event.start).tz(timeZone), 'days'));
+        .filter(event => event) // HACK hot reloader throws an error
+        .filter(event => startOfDay.isSame(moment(event.start).tz(timeZone), 'days'));
       const slotsOfTheDay = !slots ? [] : slots
         .filter(slot => slot) // HACK hot reloader throws an error
         .filter(slot => startOfDay.isSame(moment(slot.start).tz(timeZone), 'days'));
 
       return (
-        <div key={date} style={{width: dayWidth, minWidth: dayWidth, maxWidth: dayWidth}}>
+        <div key={date} style={{ width: dayWidth, minWidth: dayWidth, maxWidth: dayWidth }}>
           {calendarType === CalendarType.SPECIFIC ? (<>
             {DayHeaderTemplate ? (
-              <DayHeaderTemplate key={date} date={date} timeZone={timeZone} events={eventsOfTheDay} slots={slotsOfTheDay} calendarType={calendarType} />
+              <DayHeaderTemplate key={date} date={date} timeZone={timeZone} events={eventsOfTheDay} slots={slotsOfTheDay}
+                                 calendarType={calendarType} />
             ) : (
               <div className='day'>
                 {moment(date).tz(timeZone).format('dd D')}
-                <div className='has-event' style={{visibility: eventsOfTheDay.some(event => !event.allDay) ? 'visible' : 'hidden'}}>&nbsp;</div>
+                <div className='has-event' style={{ visibility: eventsOfTheDay.some(event => !event.allDay) ? 'visible' : 'hidden' }}>&nbsp;</div>
               </div>
             )}
 
@@ -942,11 +943,11 @@ const Calendar = ({
               .filter(event => moment(date).tz(timeZone).isSame(moment(event.start).tz(timeZone), 'days'))
               .map((event, index) => (
                 <div key={index} className='event' title={event.summary}
-                  style={{
-                    color: event.color || defaultEventColor,
-                    backgroundColor: event.bgColor || defaultEventBgColor,
-                    borderLeft: `4px solid ${event.borderColor || defaultEventBorderColor}`
-                }}>
+                     style={{
+                       color: event.color || defaultEventColor,
+                       backgroundColor: event.bgColor || defaultEventBgColor,
+                       borderLeft: `4px solid ${event.borderColor || defaultEventBorderColor}`
+                     }}>
                   {AllDayEventTemplate ? (
                     <AllDayEventTemplate event={event} date={date} timeZone={timeZone} />
                   ) : event.summary}
@@ -955,7 +956,8 @@ const Calendar = ({
             }
           </>) : calendarView !== CalendarView.SINGLE_DAY /* single day has no header */ ? (<>
             {DayHeaderTemplate ? (
-              <DayHeaderTemplate key={date} date={date} timeZone={timeZone} events={eventsOfTheDay} slots={slotsOfTheDay} calendarType={calendarType} />
+              <DayHeaderTemplate key={date} date={date} timeZone={timeZone} events={eventsOfTheDay} slots={slotsOfTheDay}
+                                 calendarType={calendarType} />
             ) : (
               <div className='day'>
                 {moment(date).tz(timeZone).format('dd')}
@@ -963,103 +965,103 @@ const Calendar = ({
             )}
           </>) : null}
         </div>
-      )
-  }), [
+      );
+    }), [
     DayHeaderTemplate, AllDayEventTemplate, calendarType, calendarView, columnDates, dayWidth, defaultEventBgColor,
     defaultEventBorderColor, defaultEventColor, events, slots, timeZone
   ]);
 
   return (
-      <div className={`calendar ${className || ''}`} style={style} ref={containerRef}>
+    <div className={`calendar ${className || ''}`} style={style} ref={containerRef}>
 
-        <div className='header'>
-          <div style={{ width: hoursContainerWidth, minWidth: hoursContainerWidth }}/>
-          {columnDates.map((date, index) => renderedDayHeaders[index])}
-          <div style={{ width: scrollbarWidth, minWidth: scrollbarWidth }}/>
+      <div className='header'>
+        <div style={{ width: hoursContainerWidth, minWidth: hoursContainerWidth }}/>
+        {columnDates.map((date, index) => renderedDayHeaders[index])}
+        <div style={{ width: scrollbarWidth, minWidth: scrollbarWidth }}/>
+      </div>
+
+      <div className='content' ref={calendarContentRef}>
+        <div className='hours' style={{
+          height: hoursToPixels(maxHour - minHour),
+          width: hoursContainerWidth,
+          minWidth: hoursContainerWidth
+        }}>
+          {Array.from({ length: maxHour - minHour + 1 }).map((_, i) => minHour + i).map((/* number */ hour) => (
+            // 6 is the height of calendar__content__hour last item
+            <div key={hour} className='hour' style={{ height: hour < 24 ? hoursToPixels(1) : 6 }}>
+              {`${moment(currentDate).tz(timeZone).startOf('weeks').add(hour, 'hours').format('ha')}`}
+            </div>
+          ))}
         </div>
 
-        <div className='content' ref={calendarContentRef}>
-          <div className='hours' style={{
-            height: hoursToPixels(maxHour - minHour),
-            width: hoursContainerWidth,
-            minWidth: hoursContainerWidth
-          }}>
-            {Array.from({ length: maxHour - minHour + 1 }).map((_, i) => minHour + i).map((/* number */ hour) => (
-                // 6 is the height of calendar__content__hour last item
-                <div key={hour} className='hour' style={{ height: hour < 24 ? hoursToPixels(1) : 6 }}>
-                  {`${moment(currentDate).tz(timeZone).startOf('weeks').add(hour, 'hours').format('ha')}`}
-                </div>
-            ))}
-          </div>
-
-          {columnDates.map((date, index) => (
-            <div key={date} className='day'
+        {columnDates.map((date, index) => (
+          <div key={date} className='day'
                style={{
                  width: dayWidth,
                  minWidth: dayWidth,
                  maxWidth: dayWidth,
                  height: hoursToPixels(maxHour - minHour)
                }}>
-              {renderedDayEventContainer[index]}
-              {renderedSlots[index]}
-              {renderedEvents[index]}
+            {renderedDayEventContainer[index]}
+            {renderedSlots[index]}
+            {renderedEvents[index]}
 
-              {/* dragged event */}
-              { dragContextRef.current.action !== DragAction.NONE &&
-              editionMode === EditionMode.EVENTS &&
-              dragEvent &&
-              isSameDay(dragEvent.start, date, timeZone) && (
-                  <div className='event dragging' style={{
-                    top: calcTop(dragEvent.start),
-                    height: calcHeight(dragEvent.start, dragEvent.end),
-                    color: dragEvent.color || defaultEventColor,
-                    backgroundColor: dragEvent.bgColor || defaultEventBgColor,
-                    borderLeft: `4px solid ${dragEvent.borderColor || defaultEventBorderColor}`,
-                  }}>
-                    {moment(dragEvent.start).tz(timeZone).format('h:mma')} - {moment(dragEvent.end).tz(timeZone).format('h:mma')}<br/>
-                    {dragEvent.summary}
-                  </div>
-              )}
+            {/* dragged event */}
+            {dragContextRef.current.action !== DragAction.NONE &&
+            editionMode === EditionMode.EVENTS &&
+            dragEvent &&
+            isSameDay(dragEvent.start, date, timeZone) && (
+              <div className='event dragging' style={{
+                top: calcTop(dragEvent.start),
+                height: calcHeight(dragEvent.start, dragEvent.end),
+                color: dragEvent.color || defaultEventColor,
+                backgroundColor: dragEvent.bgColor || defaultEventBgColor,
+                borderLeft: `4px solid ${dragEvent.borderColor || defaultEventBorderColor}`
+              }}>
+                {moment(dragEvent.start).tz(timeZone).format('h:mma')} - {moment(dragEvent.end).tz(timeZone).format('h:mma')}<br/>
+                {dragEvent.summary}
+              </div>
+            )}
 
-              {/* dragged slot */}
-              { dragContextRef.current.action !== DragAction.NONE &&
-              editionMode === EditionMode.SLOTS &&
-              dragEvent &&
-              isSameDay(dragEvent.start, date, timeZone) && (
-                  <div className='slot dragging' style={{
-                    top: calcTop(dragEvent.start),
-                    height: calcHeight(dragEvent.start, dragEvent.end),
-                    color: slotColor,
-                    backgroundColor: slotBgColor,
-                    borderRight: `4px solid ${slotBorderColor}`,
-                    pointerEvents: editionMode !== EditionMode.SLOTS ? 'none' : 'auto',
-                  }}>
-                    {moment(dragEvent.start).tz(timeZone).format('h:mma')} - {moment(dragEvent.end).tz(timeZone).format('h:mma')}<br/>
-                  </div>
-              )}
+            {/* dragged slot */}
+            {dragContextRef.current.action !== DragAction.NONE &&
+            editionMode === EditionMode.SLOTS &&
+            dragEvent &&
+            isSameDay(dragEvent.start, date, timeZone) && (
+              <div className='slot dragging' style={{
+                top: calcTop(dragEvent.start),
+                height: calcHeight(dragEvent.start, dragEvent.end),
+                color: slotColor,
+                backgroundColor: slotBgColor,
+                borderRight: `4px solid ${slotBorderColor}`,
+                pointerEvents: editionMode !== EditionMode.SLOTS ? 'none' : 'auto'
+              }}>
+                {moment(dragEvent.start).tz(timeZone).format('h:mma')} - {moment(dragEvent.end).tz(timeZone).format('h:mma')}<br/>
+              </div>
+            )}
 
-              {/* indicator */}
-              { dragContextRef.current.action === DragAction.NONE &&
-              dragIndicator &&
-              isSameDay(dragIndicator.start, date, timeZone) && (
-                  <div className='indicator dragging' style={{
-                    top: calcTop(dragIndicator.start),
-                    height: calcHeight(dragIndicator.start, dragIndicator.end),
-                    color: editionMode === EditionMode.EVENTS ? defaultEventColor : slotColor,
-                    backgroundColor: editionMode === EditionMode.EVENTS ? defaultEventBgColor : slotBgColor,
-                    opacity: .5
-                  }}>
-                    {moment(dragIndicator.start).tz(timeZone).format('h:mma')} - {moment(dragIndicator.end).tz(timeZone).format('h:mma')}<br/>
-                  </div>
-              )}
+            {/* indicator */}
+            {dragContextRef.current.action === DragAction.NONE &&
+            dragIndicator &&
+            isSameDay(dragIndicator.start, date, timeZone) && (
+              <div className='indicator dragging' style={{
+                top: calcTop(dragIndicator.start),
+                height: calcHeight(dragIndicator.start, dragIndicator.end),
+                color: editionMode === EditionMode.EVENTS ? defaultEventColor : slotColor,
+                backgroundColor: editionMode === EditionMode.EVENTS ? defaultEventBgColor : slotBgColor,
+                opacity: .5
+              }}>
+                {moment(dragIndicator.start).tz(timeZone).format('h:mma')} - {moment(dragIndicator.end).tz(timeZone).format('h:mma')}<br/>
+              </div>
+            )}
 
-              {isToday(date, timeZone) && nowTop ? (<>
-                <div className='current-time' style={{ top: nowTop }}/>
-              </>) : null}
-            </div>
-          ))}
-        </div>
+            {isToday(date, timeZone) && nowTop ? (<>
+              <div className='current-time' style={{ top: nowTop }}/>
+            </>) : null}
+          </div>
+        ))}
       </div>
+    </div>
   );
 };
 
