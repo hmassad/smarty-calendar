@@ -834,7 +834,7 @@ const Calendar = ({
                     height: calcHeight(startOfDay.clone().add(slot.startMinutes, 'minutes'), startOfDay.clone().add(slot.endMinutes, 'minutes')),
                     color: slotColor,
                     backgroundColor: slotBgColor,
-                    borderLeft: `4px solid ${slotBorderColor}`,
+                    borderRight: `4px solid ${slotBorderColor}`,
                     left: 0,
                     right: 0,
                     pointerEvents: editionMode !== EditionMode.SLOTS ? 'none' : 'auto'
