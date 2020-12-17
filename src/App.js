@@ -197,9 +197,9 @@ const App = () => {
         start: moment('2020-11-23T04:30:00.000-03:00').toDate(),
         end: moment('2020-11-23T14:30:00.000-03:00').toDate(),
         summary: '24 con dani',
-        borderColor: colorLuminance(googleColors["event"]["1"].background, -.2),
-        backgroundColor: googleColors["event"]["1"].background,
-        color: googleColors["event"]["1"].foreground
+        borderColor: colorLuminance(googleColors["event"]["2"].background, -.2),
+        backgroundColor: googleColors["event"]["2"].background,
+        color: googleColors["event"]["2"].foreground
       },
       {
         start: tuesday.clone().add(11, 'hours').add(15, 'minutes').toDate(),
@@ -213,34 +213,34 @@ const App = () => {
         start: thursday.clone().add(3, 'hours').toDate(),
         end: thursday.clone().add(7, 'hours').toDate(),
         summary: 'meeting 3am to 7am',
-        borderColor: colorLuminance(googleColors["event"]["3"].background, -.2),
-        backgroundColor: googleColors["event"]["3"].background,
-        color: googleColors["event"]["3"].foreground
+        borderColor: colorLuminance(googleColors["event"]["2"].background, -.2),
+        backgroundColor: googleColors["event"]["2"].background,
+        color: googleColors["event"]["2"].foreground
       },
       {
         start: today.clone().add(10.5, 'hours').toDate(),
         end: today.clone().add(12, 'hours').toDate(),
         summary: 'meeting 10:30am to 12pm',
-        borderColor: colorLuminance(googleColors["event"]["4"].background, -.2),
-        backgroundColor: googleColors["event"]["4"].background,
-        color: googleColors["event"]["4"].foreground
+        borderColor: colorLuminance(googleColors["event"]["2"].background, -.2),
+        backgroundColor: googleColors["event"]["2"].background,
+        color: googleColors["event"]["2"].foreground
       },
       {
         start: tuesday.clone().add(15, 'hours').toDate(),
         end: tuesday.clone().add(24, 'hours').toDate(),
         summary: 'meeting 3pm to 12am',
-        borderColor: colorLuminance(googleColors["event"]["5"].background, -.2),
-        backgroundColor: googleColors["event"]["5"].background,
-        color: googleColors["event"]["5"].foreground
+        borderColor: colorLuminance(googleColors["event"]["2"].background, -.2),
+        backgroundColor: googleColors["event"]["2"].background,
+        color: googleColors["event"]["2"].foreground
       },
-      {
-        start: thursday.clone().toDate(),
-        allDay: true,
-        summary: 'Some holiday or all day event 1234 1234 1234 1234 1234 1234 ',
-        borderColor: colorLuminance(googleColors["event"]["6"].background, -.2),
-        backgroundColor: googleColors["event"]["6"].background,
-        color: googleColors["event"]["6"].foreground
-      },
+      // {
+      //   start: thursday.clone().toDate(),
+      //   allDay: true,
+      //   summary: 'Some holiday or all day event 1234 1234 1234 1234 1234 1234 ',
+      //   borderColor: colorLuminance(googleColors["event"]["2"].background, -.2),
+      //   backgroundColor: googleColors["event"]["2"].background,
+      //   color: googleColors["event"]["2"].foreground
+      // },
     ];
   });
 
@@ -282,7 +282,7 @@ const App = () => {
     const yesterday = today.clone().subtract(1, 'days');
     return [
       {
-        start: today.clone().add(10, 'hours').toDate(),
+        start: today.clone().add(10.5, 'hours').toDate(),
         end: today.clone().add(13, 'hours').toDate(),
       },
       {

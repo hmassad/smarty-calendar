@@ -91,9 +91,9 @@ const Calendar = ({
                     suggestedEventBackgroundColor = 'lightgreen',
                     suggestedEventBorderColor = 'green',
 
-                    suggestedSlotColor = 'black',
-                    suggestedSlotBackgroundColor = 'red',
-                    suggestedSlotBorderColor = 'darkred',
+                    suggestedSlotColor = '#05283A',
+                    suggestedSlotBackgroundColor = '#99FF99AF',
+                    suggestedSlotBorderColor = '#66FF66AF',
                     suggestionsIcon
                   }) => {
 
@@ -876,7 +876,7 @@ const Calendar = ({
                    color: event.color || defaultEventColor,
                    backgroundColor: event.backgroundColor || defaultEventBackgroundColor,
                    borderLeft: `4px solid ${event.borderColor || defaultEventBorderColor}`,
-                   opacity: editionMode === EditionMode.EVENTS ? 1 : .75,
+                   opacity: editionMode === EditionMode.EVENTS ? 1 : .5,
                    right: overlapsWithSlot ? 40 : 0,
                    zIndex: editionMode === EditionMode.EVENTS ? 400 : 1,
                    pointerEvents: editionMode !== EditionMode.EVENTS ? 'none' : 'auto'
@@ -896,7 +896,7 @@ const Calendar = ({
                 </div>
                 <div style={{ height: bottomHandleHeight, cursor: 's-resize' }}/>
                 <div onClick={() => handleDeleteEventClick(event)}
-                     style={{ position: 'absolute', top: 0, right: 0, cursor: 'pointer' }}>
+                     style={{ position: 'absolute', top: 2, right: 2, cursor: 'pointer' }}>
                   ❌
                 </div>
               </>) : (
@@ -940,6 +940,7 @@ const Calendar = ({
                    backgroundColor: suggestedEventBackgroundColor,
                    borderLeft: `4px solid ${suggestedEventBorderColor}`,
                    right: overlapsWithSlot ? 40 : 0,
+                   cursor: 'pointer',
                  }}
             >
               <div style={{ flex: 1 }}>
@@ -947,7 +948,7 @@ const Calendar = ({
                 {event.summary}
               </div>
               {suggestionsIcon && (
-                <img src={suggestionsIcon} alt='' style={{ position: 'absolute', top: 0, right: 0, cursor: 'pointer' }}/>
+                <img src={suggestionsIcon} alt='' style={{ position: 'absolute', top: 2, right: 2, cursor: 'pointer' }}/>
               )}
             </div>
           );
@@ -978,7 +979,7 @@ const Calendar = ({
                 height: calcHeight(startOfDay.clone().add(slot.startMinutes, 'minutes'), startOfDay.clone().add(slot.endMinutes, 'minutes')),
                 color: slotColor,
                 backgroundColor: slotBackgroundColor,
-                borderRight: `4px solid ${slotBorderColor}`,
+                borderLeft: `4px solid ${slotBorderColor}`,
                 left: 0,
                 right: 0,
                 pointerEvents: editionMode !== EditionMode.SLOTS ? 'none' : 'auto'
@@ -992,7 +993,7 @@ const Calendar = ({
                   </div>
                   <div style={{ height: bottomHandleHeight, cursor: 's-resize' }}/>
                   <div onClick={() => handleDeleteWeeklyRecurringSlotClick(slot)}
-                       style={{ position: 'absolute', top: 0, right: 0, cursor: 'pointer' }}>
+                       style={{ position: 'absolute', top: 2, right: 2, cursor: 'pointer' }}>
                     ❌
                   </div>
                 </>) : (
@@ -1027,8 +1028,8 @@ const Calendar = ({
                   height: calcHeight(slot.start, slot.end),
                   color: slotColor,
                   backgroundColor: slotBackgroundColor,
-                  borderRight: `4px solid ${slotBorderColor}`,
-                  opacity: editionMode === EditionMode.SLOTS ? 1 : .75,
+                  borderLeft: `4px solid ${slotBorderColor}`,
+                  opacity: editionMode === EditionMode.SLOTS ? 1 : .5,
                   left: doesOverlap_ ? 40 : 0,
                   zIndex: editionMode === EditionMode.SLOTS ? 400 : 1,
                   pointerEvents: editionMode !== EditionMode.SLOTS ? 'none' : 'auto'
@@ -1040,7 +1041,7 @@ const Calendar = ({
                     </div>
                     <div style={{ height: bottomHandleHeight, cursor: 's-resize' }}/>
                     <div onClick={() => handleDeleteSlotClick(slot)}
-                         style={{ position: 'absolute', top: 0, right: 0, cursor: 'pointer' }}>
+                         style={{ position: 'absolute', top: 2, right: 2, cursor: 'pointer' }}>
                       ❌
                     </div>
                   </>) : (
@@ -1083,17 +1084,21 @@ const Calendar = ({
                    height: calcHeight(slot.start, slot.end),
                    color: suggestedSlotColor,
                    backgroundColor: suggestedSlotBackgroundColor,
-                   borderRight: `4px solid ${suggestedSlotBorderColor}`,
+                   borderLeft: `4px solid ${suggestedSlotBorderColor}`,
                    left: overlapsWithEvent ? 40 : 0,
+                   zIndex: 400,
                  }}
             >
+              <div style={{ height: topHandleHeight}}/>
               <div style={{ flex: 1 }}>
                 {moment(slot.start).tz(timeZone).format('h:mma')} - {moment(slot.end).tz(timeZone).format('h:mma')}<br/>
-                {slot.summary}
+                Recommended<br/>
+                Click to add
               </div>
               {suggestionsIcon && (
-                <img src={suggestionsIcon} alt='' style={{ position: 'absolute', top: 0, right: 0, cursor: 'pointer' }}/>
+                <img src={suggestionsIcon} alt='' style={{ position: 'absolute', top: 2, right: 2, cursor: 'pointer' }}/>
               )}
+              <div style={{ height: bottomHandleHeight}}/>
             </div>
           );
         });
@@ -1101,7 +1106,7 @@ const Calendar = ({
   }, [
     columnDates, events, calendarType, editionMode, timeZone, suggestedSlots, doesOverlap, maxHour, slots,
     calcTop, calcHeight, suggestedSlotColor, suggestedSlotBackgroundColor, suggestedSlotBorderColor,
-    suggestionsIcon, dragEvent
+    suggestionsIcon, dragEvent, bottomHandleHeight, topHandleHeight
   ]);
 
   return (
@@ -1168,10 +1173,14 @@ const Calendar = ({
                 height: calcHeight(dragEvent.start, dragEvent.end),
                 color: slotColor,
                 backgroundColor: slotBackgroundColor,
-                borderRight: `4px solid ${slotBorderColor}`,
+                borderLeft: `4px solid ${slotBorderColor}`,
                 pointerEvents: editionMode !== EditionMode.SLOTS ? 'none' : 'auto'
               }}>
-                {moment(dragEvent.start).tz(timeZone).format('h:mma')} - {moment(dragEvent.end).tz(timeZone).format('h:mma')}<br/>
+                <div style={{ height: topHandleHeight}}/>
+                <div style={{flex: 1}}>
+                  {moment(dragEvent.start).tz(timeZone).format('h:mma')} - {moment(dragEvent.end).tz(timeZone).format('h:mma')}<br/>
+                </div>
+                <div style={{ height: bottomHandleHeight}}/>
               </div>
             )}
 
