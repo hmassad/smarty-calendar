@@ -21,7 +21,7 @@
 
   .header {
     display: flex;
-    background-color: $bg-light-input;
+    background-color: #F0F0F0;
 
     .day {
       padding: 4px;
@@ -29,6 +29,13 @@
       text-align: center;
       text-transform: uppercase;
       font-size: 14px;
+      font-weight: 500;
+
+      &.today {
+        color: white;
+        background-color: #4ABAF9;
+        font-weight: 600;
+      }
 
       .has-event {
         position: relative;
@@ -99,7 +106,7 @@
       }
     }
 
-    .event, .slot, .indicator {
+    .event, .slot, .indicator, .suggested-event, .suggested-slot {
       position: absolute;
       left: 0;
       right: 0;
@@ -112,7 +119,7 @@
       flex-direction: column;
       padding-left: 2px;
 
-      .dragging {
+      &.dragging {
         z-index: 500;
         opacity: 75%;
       }

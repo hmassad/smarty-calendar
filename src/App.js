@@ -3,33 +3,34 @@ import './App.css'
 import moment from 'moment-timezone';
 import Calendar, {CalendarType, CalendarView, EditionMode} from './Calendar';
 import {colorLuminance} from "./colorUtils";
+import suggestionsIcon from './logo.svg';
 
-const DayHeader = ({date, timeZone, events, slots, calendarType}) => {
-  return (
-    <div>
-      {calendarType === CalendarType.SPECIFIC ? (<>
-        {moment(date).tz(timeZone).format('ddd D')}<br/>
-        all day: {`${events.filter(event => event.allDay).length}`}<br/>
-        events: {`${events.filter(event => !event.allDay).length}`}<br/>
-        slots: {`${slots.length}`}
-      </>) : (<>
-        {moment(date).tz(timeZone).format('ddd')}
-      </>)}
-    </div>
-  );
-}
-
-const AllDayEvent = ({date, event, timeZone}) => {
-  return (
-    JSON.stringify(event)
-  )
-}
-
-const Event = ({date, event, timeZone}) => {
-  return (
-    JSON.stringify(event)
-  )
-}
+// const DayHeader = ({date, timeZone, events, slots, calendarType}) => {
+//   return (
+//     <div>
+//       {calendarType === CalendarType.SPECIFIC ? (<>
+//         {moment(date).tz(timeZone).format('ddd D')}<br/>
+//         all day: {`${events.filter(event => event.allDay).length}`}<br/>
+//         events: {`${events.filter(event => !event.allDay).length}`}<br/>
+//         slots: {`${slots.length}`}
+//       </>) : (<>
+//         {moment(date).tz(timeZone).format('ddd')}
+//       </>)}
+//     </div>
+//   );
+// }
+//
+// const AllDayEvent = ({date, event, timeZone}) => {
+//   return (
+//     JSON.stringify(event)
+//   )
+// }
+//
+// const Event = ({date, event, timeZone}) => {
+//   return (
+//     JSON.stringify(event)
+//   )
+// }
 
 const googleColors = {
   "calendar": {
@@ -183,13 +184,13 @@ const App = () => {
   const [timeZone] = useState('America/Argentina/Buenos_Aires');
   const [currentDate, setCurrentDate] = useState(moment().tz(timeZone));
 
-  const [calendarType, setCalendarType] = useState(CalendarType.GENERIC);
+  const [calendarType, setCalendarType] = useState(CalendarType.SPECIFIC);
   const [calendarView, setCalendarView] = useState(CalendarView.WEEK);
   const [editionMode, setEditionMode] = useState(EditionMode.SLOTS);
 
   const [events, setEvents] = useState(() => {
     const today = moment().tz(timeZone).startOf('days');
-    const wednesday = today.clone().startOf('weeks').add(3, 'days');
+    const tuesday = today.clone().startOf('weeks').add(2, 'days');
     const thursday = today.clone().startOf('weeks').add(4, 'days');
     return [
       {
@@ -197,15 +198,15 @@ const App = () => {
         end: moment('2020-11-23T14:30:00.000-03:00').toDate(),
         summary: '24 con dani',
         borderColor: colorLuminance(googleColors["event"]["1"].background, -.2),
-        bgColor: googleColors["event"]["1"].background,
+        backgroundColor: googleColors["event"]["1"].background,
         color: googleColors["event"]["1"].foreground
       },
       {
-        start: wednesday.clone().add(11, 'hours').add(15, 'minutes').toDate(),
-        end: wednesday.clone().add(12, 'hours').add(10, 'minutes').toDate(),
+        start: tuesday.clone().add(11, 'hours').add(15, 'minutes').toDate(),
+        end: tuesday.clone().add(12, 'hours').add(10, 'minutes').toDate(),
         summary: 'yesterday 11:15a to 12:10a',
         borderColor: colorLuminance(googleColors["event"]["2"].background, -.2),
-        bgColor: googleColors["event"]["2"].background,
+        backgroundColor: googleColors["event"]["2"].background,
         color: googleColors["event"]["2"].foreground
       },
       {
@@ -213,7 +214,7 @@ const App = () => {
         end: thursday.clone().add(7, 'hours').toDate(),
         summary: 'meeting 3am to 7am',
         borderColor: colorLuminance(googleColors["event"]["3"].background, -.2),
-        bgColor: googleColors["event"]["3"].background,
+        backgroundColor: googleColors["event"]["3"].background,
         color: googleColors["event"]["3"].foreground
       },
       {
@@ -221,15 +222,15 @@ const App = () => {
         end: today.clone().add(12, 'hours').toDate(),
         summary: 'meeting 10:30am to 12pm',
         borderColor: colorLuminance(googleColors["event"]["4"].background, -.2),
-        bgColor: googleColors["event"]["4"].background,
+        backgroundColor: googleColors["event"]["4"].background,
         color: googleColors["event"]["4"].foreground
       },
       {
-        start: wednesday.clone().add(15, 'hours').toDate(),
-        end: wednesday.clone().add(24, 'hours').toDate(),
+        start: tuesday.clone().add(15, 'hours').toDate(),
+        end: tuesday.clone().add(24, 'hours').toDate(),
         summary: 'meeting 3pm to 12am',
         borderColor: colorLuminance(googleColors["event"]["5"].background, -.2),
-        bgColor: googleColors["event"]["5"].background,
+        backgroundColor: googleColors["event"]["5"].background,
         color: googleColors["event"]["5"].foreground
       },
       {
@@ -237,8 +238,30 @@ const App = () => {
         allDay: true,
         summary: 'Some holiday or all day event 1234 1234 1234 1234 1234 1234 ',
         borderColor: colorLuminance(googleColors["event"]["6"].background, -.2),
-        bgColor: googleColors["event"]["6"].background,
+        backgroundColor: googleColors["event"]["6"].background,
         color: googleColors["event"]["6"].foreground
+      },
+    ];
+  });
+
+  const [suggestedEvents, ] = useState(() => {
+    const today = moment().tz(timeZone).startOf('days');
+    const yesterday = today.clone().subtract(1, 'days');
+    return [
+      // {
+      //   start: wednesday.clone().add(11, 'hours').toDate(),
+      //   end: wednesday.clone().add(12, 'hours').toDate(),
+      //   summary: 'overlapped',
+      // },
+      {
+        start: today.clone().add(9, 'hours').toDate(),
+        end: today.clone().add(10, 'hours').toDate(),
+        summary: 'after meeting',
+      },
+      {
+        start: yesterday.clone().add(14, 'hours').toDate(),
+        end: yesterday.clone().add(15, 'hours').toDate(),
+        summary: '2pm',
       },
     ];
   });
@@ -251,6 +274,21 @@ const App = () => {
         end: today.clone().add(13, 'hours').toDate(),
         summary: 'slot 10:30am to 12pm'
       },
+    ];
+  });
+
+  const [suggestedSlots, ] = useState(() => {
+    const today = moment().tz(timeZone).startOf('days');
+    const yesterday = today.clone().subtract(1, 'days');
+    return [
+      {
+        start: today.clone().add(10, 'hours').toDate(),
+        end: today.clone().add(13, 'hours').toDate(),
+      },
+      {
+        start: yesterday.clone().add(14, 'hours').toDate(),
+        end: yesterday.clone().add(15, 'hours').toDate(),
+      }
     ];
   });
 
@@ -287,6 +325,10 @@ const App = () => {
     });
   };
 
+  const handleSuggestedEventClick = suggestedEvent => {
+    setEvents(prev => [...prev, suggestedEvent]);
+  }
+
   const handleCreateSlot = event => {
     setSlots(prev => [...prev, event]);
   };
@@ -304,6 +346,10 @@ const App = () => {
       return prev.filter(event1 => deletedSlot !== event1);
     });
   };
+
+  const handleSuggestedSlotClick = (suggestedSlot) => {
+    setSlots(prev => [...prev, suggestedSlot]);
+  }
 
   const handleCreateWeeklyRecurringSlot = event => {
     setWeeklyRecurringSlots(prev => [...prev, event]);
@@ -384,6 +430,9 @@ const App = () => {
         // DayHeaderTemplate={DayHeader}
         // AllDayEventTemplate={AllDayEvent}
         // EventTemplate={Event}
+        suggestionsIcon={suggestionsIcon}
+        suggestedEvents={suggestedEvents} onSuggestedEventClick={handleSuggestedEventClick}
+        suggestedSlots={suggestedSlots} onSuggestedSlotClick={handleSuggestedSlotClick}
       />
       <div>footer</div>
     </div>
