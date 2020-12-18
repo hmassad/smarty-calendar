@@ -39,14 +39,11 @@ const Calendar = ({
                     currentDate,
                     timeZone,
 
-                    /* {[{start: Date, end: Date, summary: string, backgroundColor: string, borderColor: string, foregroundColor: string}]} */
+                    /* {[{start: Date, end: Date, allDay: boolean, summary: string, backgroundColor: string, borderColor: string, foregroundColor: string}]} */
                     events,
                     onCreateEvent,
                     onChangeEvent,
                     onDeleteEvent,
-                    /* {[{start: Date, end: Date, summary: string}]} */
-                    suggestedEvents,
-                    onSuggestedEventClick,
 
                     /* {[{start: Date, end: Date}]} */
                     slots,
@@ -54,8 +51,8 @@ const Calendar = ({
                     onChangeSlot,
                     onDeleteSlot,
                     /* {[{start: Date, end: Date}]} */
-                    suggestedSlots,
-                    onSuggestedSlotClick,
+                    recommendedSlots,
+                    onRecommendedSlotClick,
 
                     /* {[{dayOfWeek: number, startMinutes: number, endMinutes: number}]} */
                     weeklyRecurringSlots,
@@ -83,18 +80,15 @@ const Calendar = ({
                     defaultEventColor = '#05283A',
                     defaultEventBackgroundColor = '#DBF1FE',
                     defaultEventBorderColor = '#4ABAF9',
+
                     slotColor = '#05283A',
                     slotBackgroundColor = '#FF99CD',
                     slotBorderColor = '#D3066E',
 
-                    suggestedEventColor = 'white',
-                    suggestedEventBackgroundColor = 'lightgreen',
-                    suggestedEventBorderColor = 'green',
-
-                    suggestedSlotColor = '#05283A',
-                    suggestedSlotBackgroundColor = '#99FF99AF',
-                    suggestedSlotBorderColor = '#66FF66AF',
-                    suggestionsIcon
+                    recommendedSlotColor = '#05283A',
+                    recommendedSlotBackgroundColor = '#99FF99AF',
+                    recommendedSlotBorderColor = '#66FF66AF',
+                    recommendedSlotIcon
                   }) => {
 
   const columnDates = useMemo(() => {
@@ -266,12 +260,6 @@ const Calendar = ({
       event.end.getTime() >= date.getTime());
   }, [events]);
 
-  const findSuggestedEventAtDate = useCallback((date) => {
-    return suggestedEvents.find(suggestedEvent =>
-      suggestedEvent.start.getTime() <= date.getTime() &&
-      suggestedEvent.end.getTime() >= date.getTime());
-  }, [suggestedEvents]);
-
   const findSlotAtDate = useCallback((date) => {
     return slots.find(slot =>
       slot.start.getTime() <= date.getTime() &&
@@ -279,12 +267,12 @@ const Calendar = ({
     );
   }, [slots]);
 
-  const findSuggestedSlotAtDate = useCallback((date) => {
-    return suggestedSlots.find(slot =>
+  const findRecommendedSlotAtDate = useCallback((date) => {
+    return recommendedSlots.find(slot =>
       slot.start.getTime() <= date.getTime() &&
       slot.end.getTime() >= date.getTime()
     );
-  }, [suggestedSlots]);
+  }, [recommendedSlots]);
 
   const findRecurringSlotAtDate = useCallback((date) => {
     const startOfDay = moment(date).tz(timeZone).startOf('days');
@@ -296,14 +284,14 @@ const Calendar = ({
     });
   }, [timeZone, weeklyRecurringSlots]);
 
-  const someEventOrSlotOrSuggestionAtDate = useCallback((date) => {
+  const someEventOrSlotOrRecommendedSlotAtDate = useCallback((date) => {
     return ((editionMode === EditionMode.SLOTS && (
-      (calendarType === CalendarType.SPECIFIC && (findSlotAtDate(date) || findSuggestedSlotAtDate(date))) ||
+      (calendarType === CalendarType.SPECIFIC && (findSlotAtDate(date) || findRecommendedSlotAtDate(date))) ||
       (calendarType === CalendarType.GENERIC && findRecurringSlotAtDate(date))
     )) || (
-      editionMode === EditionMode.EVENTS && (findEventAtDate(date) || findSuggestedEventAtDate(date))
+      editionMode === EditionMode.EVENTS && findEventAtDate(date)
     ));
-  }, [calendarType, editionMode, findEventAtDate, findSuggestedEventAtDate, findRecurringSlotAtDate, findSlotAtDate, findSuggestedSlotAtDate]);
+  }, [calendarType, editionMode, findEventAtDate, findRecurringSlotAtDate, findSlotAtDate, findRecommendedSlotAtDate]);
 
   const handleMouseMove = useCallback(e => {
     if (e.button !== 0) return;
@@ -431,7 +419,7 @@ const Calendar = ({
           return;
         }
         // if there's an event or slot under the mouse, do not show drag indicator
-        if (someEventOrSlotOrSuggestionAtDate(dateUnderCursor.toDate())) {
+        if (someEventOrSlotOrRecommendedSlotAtDate(dateUnderCursor.toDate())) {
           setDragIndicator(null);
           return;
         }
@@ -481,7 +469,7 @@ const Calendar = ({
     }
   }, [
     hoursToPixels, maxHour, minHour, hoursContainerWidth, dayWidth, columnDates, pixelsToMinutes, step, editionMode,
-    defaultDurationMinutes, doesOverlap, timeZone, minEventDurationMinutes, calendarType, findOverlapping, someEventOrSlotOrSuggestionAtDate
+    defaultDurationMinutes, doesOverlap, timeZone, minEventDurationMinutes, calendarType, findOverlapping, someEventOrSlotOrRecommendedSlotAtDate
   ]);
 
   const handleMouseDown = useCallback(e => {
@@ -649,11 +637,6 @@ const Calendar = ({
           startDraggingSpecificEventOrSlot(eventUnderCursor);
           return;
         }
-        const suggestedEventUnderCursor = findSuggestedEventAtDate(dateUnderCursor.toDate());
-        if (suggestedEventUnderCursor) {
-          onSuggestedEventClick && onSuggestedEventClick(suggestedEventUnderCursor);
-          return;
-        }
         startDragCreatingEventOrSlot();
         return;
       case EditionMode.SLOTS:
@@ -665,9 +648,9 @@ const Calendar = ({
               startDraggingSpecificEventOrSlot(slotUnderCursor);
               return;
             }
-            const suggestedSlotUnderCursor = findSuggestedSlotAtDate(dateUnderCursor.toDate());
-            if (suggestedSlotUnderCursor) {
-              onSuggestedSlotClick && onSuggestedSlotClick(suggestedSlotUnderCursor);
+            const recommendedSlotUnderCursor = findRecommendedSlotAtDate(dateUnderCursor.toDate());
+            if (recommendedSlotUnderCursor) {
+              onRecommendedSlotClick && onRecommendedSlotClick(recommendedSlotUnderCursor);
               return;
             }
             startDragCreatingEventOrSlot();
@@ -691,7 +674,7 @@ const Calendar = ({
     editionMode, hoursContainerWidth, dayWidth, columnDates, hoursToPixels, maxHour, minHour, pixelsToMinutes, step, events,
     calendarType, calcTop, timeZone, minEventHeight, topHandleHeight, bottomHandleHeight, defaultDurationMinutes, slots,
     weeklyRecurringSlots, doesOverlap, findEventAtDate, findSlotAtDate, findRecurringSlotAtDate, findOverlapping,
-    findSuggestedEventAtDate, onSuggestedEventClick, findSuggestedSlotAtDate, onSuggestedSlotClick
+    findRecommendedSlotAtDate, onRecommendedSlotClick
   ]);
 
   const handleMouseUp = useCallback(e => {
@@ -914,52 +897,6 @@ const Calendar = ({
     maxHour, timeZone, topHandleHeight, defaultEventColor, defaultEventBackgroundColor, defaultEventBorderColor, slots, EventTemplate
   ]);
 
-  const renderedSuggestedEvents = useMemo(() => {
-    return columnDates.map(date => {
-      if (!events) return null;
-      if (calendarType !== CalendarType.SPECIFIC) return null;
-      if (editionMode !== EditionMode.EVENTS) return null;
-      const startOfDay = moment(date).tz(timeZone).startOf('days');
-      return suggestedEvents
-        .filter(event => event) // HACK hot-reloader throws an error
-        .filter(event => startOfDay.isSame(moment(event.start).tz(timeZone), 'days'))
-        .filter(event => moment(event.start).tz(timeZone).hours() <= maxHour)
-        .filter(event => !doesOverlap(event.start, event.end)) // do not render event if conflicted
-        .filter(event =>
-          !moment(event.start).tz(timeZone).isSame(moment(event.end).tz(timeZone), 'days') ||
-          moment(event.start).tz(timeZone).hours() <= maxHour)
-        .filter(event => !dragEvent || !checkCollision(event.start, event.end, dragEvent.start, dragEvent.end))
-        .map((event, index) => {
-          const overlapsWithSlot = slots && slots.some(slot => checkCollision(slot.start, slot.end, event.start, event.end));
-          return (
-            <div key={index} className='suggested-event' title={event.summary}
-                 style={{
-                   top: calcTop(event.start),
-                   height: calcHeight(event.start, event.end),
-                   color: suggestedEventColor,
-                   backgroundColor: suggestedEventBackgroundColor,
-                   borderLeft: `4px solid ${suggestedEventBorderColor}`,
-                   right: overlapsWithSlot ? 40 : 0,
-                   cursor: 'pointer',
-                 }}
-            >
-              <div style={{ flex: 1 }}>
-                {moment(event.start).tz(timeZone).format('h:mma')} - {moment(event.end).tz(timeZone).format('h:mma')}<br/>
-                {event.summary}
-              </div>
-              {suggestionsIcon && (
-                <img src={suggestionsIcon} alt='' style={{ position: 'absolute', top: 2, right: 2, cursor: 'pointer' }}/>
-              )}
-            </div>
-          );
-        });
-    });
-  }, [
-    columnDates, events, calendarType, editionMode, timeZone, suggestedEvents, doesOverlap, maxHour, slots,
-    calcTop, calcHeight, suggestedEventColor, suggestedEventBackgroundColor, suggestedEventBorderColor,
-    suggestionsIcon, dragEvent
-  ]);
-
   const renderedSlots = useMemo(() => {
     switch (calendarType) {
       case CalendarType.GENERIC:
@@ -1060,13 +997,13 @@ const Calendar = ({
     slotColor, slotBackgroundColor, slotBorderColor, events
   ]);
 
-  const renderedSuggestedSlots = useMemo(() => {
+  const renderedRecommendedSlots = useMemo(() => {
     return columnDates.map(date => {
       if (!slots) return null;
       if (calendarType !== CalendarType.SPECIFIC) return null;
       if (editionMode !== EditionMode.SLOTS) return null;
       const startOfDay = moment(date).tz(timeZone).startOf('days');
-      return suggestedSlots
+      return recommendedSlots
         .filter(slot => slot) // HACK hot-reloader throws an error
         .filter(slot => startOfDay.isSame(moment(slot.start).tz(timeZone), 'days'))
         .filter(slot => moment(slot.start).tz(timeZone).hours() <= maxHour)
@@ -1078,13 +1015,13 @@ const Calendar = ({
         .map((slot, index) => {
           const overlapsWithEvent = events && events.some(event => checkCollision(event.start, event.end, slot.start, slot.end));
           return (
-            <div key={index} className='suggested-slot'
+            <div key={index} className='recommended-slot'
                  style={{
                    top: calcTop(slot.start),
                    height: calcHeight(slot.start, slot.end),
-                   color: suggestedSlotColor,
-                   backgroundColor: suggestedSlotBackgroundColor,
-                   borderLeft: `4px solid ${suggestedSlotBorderColor}`,
+                   color: recommendedSlotColor,
+                   backgroundColor: recommendedSlotBackgroundColor,
+                   borderLeft: `4px solid ${recommendedSlotBorderColor}`,
                    left: overlapsWithEvent ? 40 : 0,
                    zIndex: 400,
                  }}
@@ -1095,8 +1032,8 @@ const Calendar = ({
                 Recommended<br/>
                 Click to add
               </div>
-              {suggestionsIcon && (
-                <img src={suggestionsIcon} alt='' style={{ position: 'absolute', top: 2, right: 2, cursor: 'pointer' }}/>
+              {recommendedSlotIcon && (
+                <img src={recommendedSlotIcon} alt='' style={{ position: 'absolute', top: 2, right: 2, cursor: 'pointer' }}/>
               )}
               <div style={{ height: bottomHandleHeight}}/>
             </div>
@@ -1104,9 +1041,9 @@ const Calendar = ({
         });
     });
   }, [
-    columnDates, events, calendarType, editionMode, timeZone, suggestedSlots, doesOverlap, maxHour, slots,
-    calcTop, calcHeight, suggestedSlotColor, suggestedSlotBackgroundColor, suggestedSlotBorderColor,
-    suggestionsIcon, dragEvent, bottomHandleHeight, topHandleHeight
+    columnDates, events, calendarType, editionMode, timeZone, recommendedSlots, doesOverlap, maxHour, slots,
+    calcTop, calcHeight, recommendedSlotColor, recommendedSlotBackgroundColor, recommendedSlotBorderColor,
+    recommendedSlotIcon, dragEvent, bottomHandleHeight, topHandleHeight
   ]);
 
   return (
@@ -1143,8 +1080,7 @@ const Calendar = ({
             {renderedDayEventContainer[index]}
             {renderedSlots[index]}
             {renderedEvents[index]}
-            {renderedSuggestedEvents[index]}
-            {renderedSuggestedSlots[index]}
+            {renderedRecommendedSlots[index]}
 
             {/* dragged event */}
             {dragContextRef.current.action !== DragAction.NONE &&

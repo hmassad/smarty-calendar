@@ -3,7 +3,7 @@ import './App.css'
 import moment from 'moment-timezone';
 import Calendar, {CalendarType, CalendarView, EditionMode} from './Calendar';
 import {colorLuminance} from "./colorUtils";
-import suggestionsIcon from './logo.svg';
+import recommendedSlotIcon from './logo.svg';
 
 // const DayHeader = ({date, timeZone, events, slots, calendarType}) => {
 //   return (
@@ -233,36 +233,6 @@ const App = () => {
         backgroundColor: googleColors["event"]["2"].background,
         color: googleColors["event"]["2"].foreground
       },
-      // {
-      //   start: thursday.clone().toDate(),
-      //   allDay: true,
-      //   summary: 'Some holiday or all day event 1234 1234 1234 1234 1234 1234 ',
-      //   borderColor: colorLuminance(googleColors["event"]["2"].background, -.2),
-      //   backgroundColor: googleColors["event"]["2"].background,
-      //   color: googleColors["event"]["2"].foreground
-      // },
-    ];
-  });
-
-  const [suggestedEvents, ] = useState(() => {
-    const today = moment().tz(timeZone).startOf('days');
-    const yesterday = today.clone().subtract(1, 'days');
-    return [
-      // {
-      //   start: wednesday.clone().add(11, 'hours').toDate(),
-      //   end: wednesday.clone().add(12, 'hours').toDate(),
-      //   summary: 'overlapped',
-      // },
-      {
-        start: today.clone().add(9, 'hours').toDate(),
-        end: today.clone().add(10, 'hours').toDate(),
-        summary: 'after meeting',
-      },
-      {
-        start: yesterday.clone().add(14, 'hours').toDate(),
-        end: yesterday.clone().add(15, 'hours').toDate(),
-        summary: '2pm',
-      },
     ];
   });
 
@@ -277,7 +247,7 @@ const App = () => {
     ];
   });
 
-  const [suggestedSlots, ] = useState(() => {
+  const [recommendedSlots, ] = useState(() => {
     const today = moment().tz(timeZone).startOf('days');
     const yesterday = today.clone().subtract(1, 'days');
     return [
@@ -325,10 +295,6 @@ const App = () => {
     });
   };
 
-  const handleSuggestedEventClick = suggestedEvent => {
-    setEvents(prev => [...prev, suggestedEvent]);
-  }
-
   const handleCreateSlot = event => {
     setSlots(prev => [...prev, event]);
   };
@@ -347,8 +313,8 @@ const App = () => {
     });
   };
 
-  const handleSuggestedSlotClick = (suggestedSlot) => {
-    setSlots(prev => [...prev, suggestedSlot]);
+  const handleRecommendedlotClick = (recommendedSlot) => {
+    setSlots(prev => [...prev, recommendedSlot]);
   }
 
   const handleCreateWeeklyRecurringSlot = event => {
@@ -430,9 +396,8 @@ const App = () => {
         // DayHeaderTemplate={DayHeader}
         // AllDayEventTemplate={AllDayEvent}
         // EventTemplate={Event}
-        suggestionsIcon={suggestionsIcon}
-        suggestedEvents={suggestedEvents} onSuggestedEventClick={handleSuggestedEventClick}
-        suggestedSlots={suggestedSlots} onSuggestedSlotClick={handleSuggestedSlotClick}
+        recommendedSlotIcon={recommendedSlotIcon}
+        recommendedSlots={recommendedSlots} onRecommendedSlotClick={handleRecommendedlotClick}
       />
       <div>footer</div>
     </div>
