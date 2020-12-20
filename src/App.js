@@ -313,7 +313,7 @@ const App = () => {
     });
   };
 
-  const handleRecommendedlotClick = (recommendedSlot) => {
+  const handleRecommendedSlotClick = (recommendedSlot) => {
     setSlots(prev => [...prev, recommendedSlot]);
   }
 
@@ -397,7 +397,7 @@ const App = () => {
         // AllDayEventTemplate={AllDayEvent}
         // EventTemplate={Event}
         recommendedSlotIcon={recommendedSlotIcon}
-        recommendedSlots={recommendedSlots} onRecommendedSlotClick={handleRecommendedlotClick}
+        recommendedSlots={recommendedSlots} onRecommendedSlotClick={handleRecommendedSlotClick}
       />
       <div>footer</div>
     </div>
